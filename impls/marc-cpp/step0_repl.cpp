@@ -1,4 +1,5 @@
 #include <iostream>
+#include "linenoise.hpp"
 
 std::string &read(std::string &line)
 {
@@ -17,10 +18,8 @@ std::string &print(std::string &line)
 
 bool rep()
 {
-    std::cout << "user> ";
-
     std::string line;
-    if (!std::getline(std::cin, line))
+    if (linenoise::Readline("user> ", line))
     {
         return false;
     }
