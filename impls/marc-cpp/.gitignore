@@ -3,3 +3,6 @@
 **/*.pcm
 *.pcm.json
 compile_commands.json
+
+# This implementation uses mal/ for module sources, rather than an executable.
+!mal/

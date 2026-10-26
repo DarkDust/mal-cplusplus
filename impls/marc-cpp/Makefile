@@ -14,7 +14,7 @@ all: $(TARGETS)
 $(TARGETS): %: %.o mal/mal.o
 	$(LD) $^ -o $@ $(LDFLAGS)
 
-mal/mal.pcm: mal/mal.cppm mal/linenoise.hpp
+mal/mal.pcm: mal/mal.cppm mal/mal.hpp mal/linenoise.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) --precompile $< -o $@
 
 mal/mal.o: mal/mal.pcm
