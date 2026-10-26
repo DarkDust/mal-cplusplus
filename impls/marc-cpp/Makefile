@@ -1,7 +1,7 @@
 CXX=clang
 LD=$(CXX)
 
-CXXFLAGS=-std=c++23
+CXXFLAGS=-std=c++23 -fcxx-modules
 LDFLAGS=-lstdc++
 
 .PHONY: all clean
@@ -11,11 +11,17 @@ TARGETS=$(MAINS:%.cpp=%)
 
 all: $(TARGETS)
 
-$(TARGETS): %: %.o
+$(TARGETS): %: %.o mal/mal.o
 	$(LD) $^ -o $@ $(LDFLAGS)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+mal/mal.pcm: mal/mal.cppm mal/linenoise.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) --precompile $< -o $@
+
+mal/mal.o: mal/mal.pcm
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+%.o: %.cpp mal/mal.pcm
+	$(CXX) $(CXXFLAGS) -fmodule-file=mal=mal/mal.pcm -c $< -o $@
 
 clean:
-	rm -f *.o $(TARGETS)
+	rm -f *.o mal/*.o mal/*.pcm $(TARGETS)

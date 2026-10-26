@@ -1,1 +1,5 @@
-*.o
+**/*.o
+*.o.json
+**/*.pcm
+*.pcm.json
+compile_commands.json
