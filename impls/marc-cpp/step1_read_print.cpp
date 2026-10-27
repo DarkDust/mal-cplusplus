@@ -1,0 +1,45 @@
+#include <iostream>
+#include <string>
+import mal;
+
+std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
+  auto reader = new mal::Reader(line);
+  auto result = reader->read_form();
+  delete reader;
+  return result;
+}
+
+std::optional<std::shared_ptr<mal::Node>>
+eval(const std::optional<std::shared_ptr<mal::Node>> &node) {
+  return node;
+}
+
+std::string print(const std::optional<std::shared_ptr<mal::Node>> &node) {
+  if (!node) {
+    return "";
+  }
+  return (*node)->print();
+}
+
+bool rep() {
+  auto line = mal::read_line();
+  if (!line) {
+    return false;
+  }
+
+  try {
+    auto intermediate_read = read(*line);
+    auto intermediate_eval = eval(intermediate_read);
+    auto intermediate_print = print(intermediate_eval);
+    std::cout << intermediate_print << std::endl;
+  } catch (mal::ParseError error) {
+    std::cerr << error.what() << std::endl;
+  }
+  return true;
+}
+
+int main(int argc, char **argv) {
+  while (rep())
+    ;
+  return 0;
+}

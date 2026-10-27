@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug step1_read_print",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/step1_read_print",
+            "cwd": "${workspaceFolder}",
+            "terminal": "integrated",
+            "preLaunchTask": "build step1_read_print (debug)"
+        }
+    ]
+}
