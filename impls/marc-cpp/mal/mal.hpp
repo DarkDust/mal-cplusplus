@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -155,6 +156,22 @@ private:
   std::unordered_map<std::shared_ptr<const Hashable>, std::shared_ptr<Node>,
                      KeyHash, KeyEqual>
       map;
+};
+
+/**
+ * Temporary AST node to deal with unit tests until the actual nodes are
+ * implemented.
+ */
+class Future : public Node {
+public:
+  Future(const std::string &prefix, const std::string &suffix,
+         std::shared_ptr<Node> contained);
+  std::string print() const override;
+
+private:
+  std::string prefix;
+  std::string suffix;
+  std::shared_ptr<Node> contained;
 };
 
 /**

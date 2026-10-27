@@ -67,6 +67,12 @@ struct Reader::Impl {
     case '{':
       return this->read_hashmap();
 
+    case '\'':
+    case '`':
+    case '~':
+    case '@':
+      return this->read_future();
+
     default:
       return this->read_atom();
     }
@@ -183,6 +189,56 @@ struct Reader::Impl {
 
     } else {
       return std::make_shared<Symbol>(*token);
+    }
+  }
+
+  // Stuff that is going to be implemented at a later time, but that is already
+  // covered by tests.
+  std::optional<std::shared_ptr<Node>> read_future() {
+    const auto token = this->next();
+    if (!token || token->length() == 0) {
+      throw ParseError("missing token");
+    }
+
+    const char c = token->at(0);
+    switch (c) {
+    case '\'': {
+      auto contained = this->read_form();
+      if (!contained) {
+        throw ParseError("missing form");
+      }
+      return std::make_shared<Future>("(quote ", ")", *contained);
+    }
+
+    case '`': {
+      auto contained = this->read_form();
+      if (!contained) {
+        throw ParseError("missing form");
+      }
+      return std::make_shared<Future>("(quasiquote ", ")", *contained);
+    }
+
+    case '~': {
+      auto contained = this->read_form();
+      if (!contained) {
+        throw ParseError("missing form");
+      }
+      if (token->length() > 1 && token->at(1) == '@') {
+        return std::make_shared<Future>("(splice-unquote ", ")", *contained);
+      }
+      return std::make_shared<Future>("(unquote ", ")", *contained);
+    }
+
+    case '@': {
+      auto contained = this->read_form();
+      if (!contained) {
+        throw ParseError("missing form");
+      }
+      return std::make_shared<Future>("(deref ", ")", *contained);
+    }
+
+    default:
+      throw ParseError("unknown future");
     }
   }
 };
