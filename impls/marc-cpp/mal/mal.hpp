@@ -31,6 +31,18 @@ private:
 };
 
 /**
+ * Runtime error when evaluation fails.
+ */
+class RuntimeError : public std::runtime_error {
+public:
+  RuntimeError(const std::string message, int line = -1, int line_pos = -1);
+
+private:
+  int line;
+  int line_pos;
+};
+
+/**
  * Virtual parent class for AST nodes.
  */
 class Node {
@@ -55,6 +67,8 @@ class Symbol : public Node {
 public:
   Symbol(const std::string &str);
   std::string print() const override;
+
+  const std::string &get_symbol() const;
 
 private:
   std::string sym;
@@ -106,7 +120,9 @@ private:
 class Number : public Node {
 public:
   Number(const std::string &str);
+  Number(const int num);
   std::string print() const override;
+  int get_number() const;
 
 private:
   int num;
@@ -120,9 +136,12 @@ public:
   enum class Kind { List, Vector };
 
   List(Kind kind);
+  List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes);
   std::string print() const override;
 
   void append(std::shared_ptr<Node> node);
+
+  const std::vector<std::shared_ptr<Node>> &get_nodes() const;
 
 private:
   Kind kind;
@@ -175,6 +194,15 @@ private:
 };
 
 /**
+ * Base class for built-in functions.
+ */
+class BuiltinLambda : public Node {
+public:
+  virtual std::optional<std::shared_ptr<Node>>
+  eval(std::vector<std::shared_ptr<Node>> args) = 0;
+};
+
+/**
  * Main line reader/parser implementation.
  */
 class Reader {
@@ -188,6 +216,29 @@ private:
   // Hide the actual implementation detail.s
   struct Impl;
   std::unique_ptr<Impl> impl;
+};
+
+/**
+ * An execution environment.
+ */
+class Environment {
+public:
+  Environment();
+
+  /** Lookup a symbol. */
+  std::optional<std::shared_ptr<Node>> get(const std::string &key);
+
+  /** Add a symbol to the environment. */
+  void set(const std::string &key, std::shared_ptr<Node> val);
+
+  /** Remove a symbol from the environment. */
+  void remove(const std::string &key);
+
+  /** Add default built-in symbols. */
+  void populate_with_default();
+
+private:
+  std::unordered_map<std::string, std::shared_ptr<Node>> map;
 };
 
 } // namespace mal

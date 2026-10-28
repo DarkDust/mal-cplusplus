@@ -2,6 +2,7 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
-        "--experimental-modules-support"
+        "--experimental-modules-support",
+        "--header-insertion=never"
     ]
 }

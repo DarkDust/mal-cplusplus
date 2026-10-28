@@ -11,4 +11,8 @@ Number::Number(const std::string &str) {
   this->num = std::stoi(str);
 }
 
+Number::Number(const int num) { this->num = num; }
+
 std::string Number::print() const { return std::to_string(this->num); }
+
+int Number::get_number() const { return this->num; }

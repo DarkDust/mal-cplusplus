@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug step1_read_print",
+            "name": "Debug step2_eval",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/step1_read_print",
+            "program": "${workspaceFolder}/step2_eval",
             "cwd": "${workspaceFolder}",
             "terminal": "integrated",
-            "preLaunchTask": "build step1_read_print (debug)"
+            "preLaunchTask": "build step2_eval (debug)"
         }
     ]
 }

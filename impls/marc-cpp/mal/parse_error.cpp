@@ -1,6 +1,5 @@
 module;
 
-import mal;
 #include <stdexcept>
 #include <string>
 

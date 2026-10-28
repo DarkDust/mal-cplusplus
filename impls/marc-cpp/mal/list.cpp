@@ -10,6 +10,9 @@ using namespace mal;
 
 List::List(Kind kind) : nodes{}, kind(kind) {}
 
+List::List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes)
+    : nodes(nodes), kind(kind) {}
+
 std::string List::print() const {
   std::string opening = kind == Kind::List ? "(" : "[";
   std::string closing = kind == Kind::List ? ")" : "]";
@@ -31,3 +34,7 @@ std::string List::print() const {
 }
 
 void List::append(std::shared_ptr<Node> node) { this->nodes.push_back(node); }
+
+const std::vector<std::shared_ptr<Node>> &List::get_nodes() const {
+  return this->nodes;
+}
