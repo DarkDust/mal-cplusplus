@@ -20,11 +20,11 @@ std::string List::print() const {
   std::string result = opening;
 
   bool is_first = true;
-  for (auto it : nodes) {
+  for (auto &it : nodes) {
     if (is_first) {
       is_first = false;
     } else {
-      result += " ";
+      result += ' ';
     }
     result += it->print();
   }
@@ -33,7 +33,7 @@ std::string List::print() const {
   return result;
 }
 
-void List::append(std::shared_ptr<Node> node) { this->nodes.push_back(node); }
+void List::append(std::shared_ptr<Node> &node) { this->nodes.push_back(node); }
 
 const std::vector<std::shared_ptr<Node>> &List::get_nodes() const {
   return this->nodes;

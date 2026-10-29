@@ -2,6 +2,7 @@ module;
 
 #include <memory>
 #include <optional>
+#include <vector>
 
 module mal;
 
@@ -10,7 +11,7 @@ using namespace mal;
 class BuiltinLambdaPlus : public BuiltinLambda {
 public:
   std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) {
+  eval(std::vector<std::shared_ptr<Node>> args) override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
@@ -26,13 +27,13 @@ public:
     return node;
   }
 
-  std::string print() const { return "+"; }
+  [[nodiscard]] std::string print() const override { return "+"; }
 };
 
 class BuiltinLambdaMinus : public BuiltinLambda {
 public:
   std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) {
+  eval(std::vector<std::shared_ptr<Node>> args) override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
@@ -48,13 +49,13 @@ public:
     return node;
   }
 
-  std::string print() const { return "-"; }
+  [[nodiscard]] std::string print() const override { return "-"; }
 };
 
 class BuiltinLambdaMultiply : public BuiltinLambda {
 public:
   std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) {
+  eval(std::vector<std::shared_ptr<Node>> args) override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
@@ -70,13 +71,13 @@ public:
     return node;
   }
 
-  std::string print() const { return "*"; }
+  [[nodiscard]] std::string print() const override { return "*"; }
 };
 
 class BuiltinLambdaDivide : public BuiltinLambda {
 public:
   std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) {
+  eval(std::vector<std::shared_ptr<Node>> args) override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
@@ -92,7 +93,7 @@ public:
     return node;
   }
 
-  std::string print() const { return "/"; }
+  [[nodiscard]] std::string print() const override { return "/"; }
 };
 
 Environment::Environment() : map{} {}

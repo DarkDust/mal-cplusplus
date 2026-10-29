@@ -39,7 +39,15 @@ bool rep() {
 }
 
 int main(int argc, char **argv) {
-  while (rep())
-    ;
-  return 0;
+  try {
+    while (rep()) {
+    }
+    return EXIT_SUCCESS;
+  } catch (const std::exception &error) {
+    std::cerr << "Fatal error: " << error.what() << std::endl;
+  } catch (...) {
+    std::cerr << "Fatal error: unknown exception" << std::endl;
+  }
+
+  return EXIT_FAILURE;
 }

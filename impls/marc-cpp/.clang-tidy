@@ -1,0 +1,11 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  -performance-avoid-endl
+HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '(^|/)linenoise\.hpp$'

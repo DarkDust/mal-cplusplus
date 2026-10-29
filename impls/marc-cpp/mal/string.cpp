@@ -43,19 +43,19 @@ static std::string unescape(const std::string &str) {
     if (expecting_code) {
       switch (c) {
       case '\\':
-        output += "\\";
+        output += '\\';
         break;
       case '"':
-        output += "\"";
+        output += '"';
         break;
       case 'n':
-        output += "\n";
+        output += '\n';
         break;
       case 'r':
-        output += "\r";
+        output += '\r';
         break;
       case 't':
-        output += "\t";
+        output += '\t';
         break;
       default:
         throw ParseError("unsupport escape sequence");
@@ -78,8 +78,8 @@ static std::string unescape(const std::string &str) {
 }
 
 String::String(const std::string &str) {
-  if (str.starts_with("\"")) {
-    if (!str.ends_with("\"") || str.length() == 1) {
+  if (str.starts_with('"')) {
+    if (!str.ends_with('"') || str.length() == 1) {
       throw ParseError("unbalanced string");
     }
     this->str = unescape(str.substr(1, str.length() - 2));

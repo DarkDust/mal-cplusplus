@@ -21,14 +21,14 @@ std::string HashMap::print() const {
     if (is_first) {
       is_first = false;
     } else {
-      output += " ";
+      output += ' ';
     }
 
     output += key->print();
-    output += " ";
+    output += ' ';
     output += val->print();
   }
 
-  output += "}";
+  output += '}';
   return output;
 }

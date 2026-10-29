@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -23,7 +22,7 @@ std::optional<std::string> read_line();
  */
 class ParseError : public std::runtime_error {
 public:
-  ParseError(const std::string message, int line = -1, int line_pos = -1);
+  ParseError(const std::string &message, int line = -1, int line_pos = -1);
 
 private:
   int line;
@@ -35,7 +34,7 @@ private:
  */
 class RuntimeError : public std::runtime_error {
 public:
-  RuntimeError(const std::string message, int line = -1, int line_pos = -1);
+  RuntimeError(const std::string &message, int line = -1, int line_pos = -1);
 
 private:
   int line;
@@ -48,7 +47,7 @@ private:
 class Node {
 public:
   virtual ~Node() = 0;
-  virtual std::string print() const = 0;
+  [[nodiscard]] virtual std::string print() const = 0;
 };
 
 /**
@@ -56,8 +55,8 @@ public:
  */
 class Hashable : public Node {
 public:
-  virtual std::size_t hash() const = 0;
-  virtual bool equals(const Hashable &other) const = 0;
+  [[nodiscard]] virtual std::size_t hash() const = 0;
+  [[nodiscard]] virtual bool equals(const Hashable &other) const = 0;
 };
 
 /**
@@ -66,9 +65,9 @@ public:
 class Symbol : public Node {
 public:
   Symbol(const std::string &str);
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
-  const std::string &get_symbol() const;
+  [[nodiscard]] const std::string &get_symbol() const;
 
 private:
   std::string sym;
@@ -80,13 +79,13 @@ private:
 class Keyword : public Hashable {
 public:
   Keyword(const std::string &str);
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
-  std::size_t hash() const override {
+  [[nodiscard]] std::size_t hash() const override {
     return std::hash<std::string>{}(keyword);
   }
 
-  bool equals(const Hashable &other) const override {
+  [[nodiscard]] bool equals(const Hashable &other) const override {
     auto rhs = dynamic_cast<const Keyword *>(&other);
     return rhs && keyword == rhs->keyword;
   }
@@ -101,11 +100,13 @@ private:
 class String : public Hashable {
 public:
   String(const std::string &str);
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
-  std::size_t hash() const override { return std::hash<std::string>{}(str); }
+  [[nodiscard]] std::size_t hash() const override {
+    return std::hash<std::string>{}(str);
+  }
 
-  bool equals(const Hashable &other) const override {
+  [[nodiscard]] bool equals(const Hashable &other) const override {
     auto rhs = dynamic_cast<const String *>(&other);
     return rhs && str == rhs->str;
   }
@@ -121,8 +122,8 @@ class Number : public Node {
 public:
   Number(const std::string &str);
   Number(const int num);
-  std::string print() const override;
-  int get_number() const;
+  [[nodiscard]] std::string print() const override;
+  [[nodiscard]] int get_number() const;
 
 private:
   int num;
@@ -133,15 +134,15 @@ private:
  */
 class List : public Node {
 public:
-  enum class Kind { List, Vector };
+  enum class Kind : std::uint8_t { List, Vector };
 
   List(Kind kind);
   List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes);
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
-  void append(std::shared_ptr<Node> node);
+  void append(std::shared_ptr<Node> &node);
 
-  const std::vector<std::shared_ptr<Node>> &get_nodes() const;
+  [[nodiscard]] const std::vector<std::shared_ptr<Node>> &get_nodes() const;
 
 private:
   Kind kind;
@@ -154,7 +155,7 @@ private:
 class HashMap : public Node {
 public:
   HashMap();
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
   void set(std::shared_ptr<const Hashable> key, std::shared_ptr<Node> value);
 
@@ -183,9 +184,9 @@ private:
  */
 class Future : public Node {
 public:
-  Future(const std::string &prefix, const std::string &suffix,
+  Future(std::string prefix, std::string suffix,
          std::shared_ptr<Node> contained);
-  std::string print() const override;
+  [[nodiscard]] std::string print() const override;
 
 private:
   std::string prefix;

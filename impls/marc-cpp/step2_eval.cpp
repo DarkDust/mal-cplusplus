@@ -77,10 +77,18 @@ bool rep(std::shared_ptr<mal::Environment> &env) {
 }
 
 int main(int argc, char **argv) {
-  auto env = std::make_shared<mal::Environment>();
-  env->populate_with_default();
+  try {
+    auto env = std::make_shared<mal::Environment>();
+    env->populate_with_default();
 
-  while (rep(env))
-    ;
-  return 0;
+    while (rep(env)) {
+    }
+    return EXIT_SUCCESS;
+  } catch (const std::exception &error) {
+    std::cerr << "Fatal error: " << error.what() << std::endl;
+  } catch (...) {
+    std::cerr << "Fatal error: unknown exception" << std::endl;
+  }
+
+  return EXIT_FAILURE;
 }
