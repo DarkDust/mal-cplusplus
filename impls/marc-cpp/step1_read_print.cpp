@@ -3,9 +3,8 @@
 import mal;
 
 std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
-  auto reader = new mal::Reader(line);
-  auto result = reader->read_form();
-  delete reader;
+  auto reader = mal::Reader(line);
+  auto result = reader.read_form();
   return result;
 }
 

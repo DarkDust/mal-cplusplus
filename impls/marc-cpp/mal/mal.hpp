@@ -22,7 +22,8 @@ std::optional<std::string> read_line();
  */
 class ParseError : public std::runtime_error {
 public:
-  ParseError(const std::string &message, int line = -1, int line_pos = -1);
+  explicit ParseError(const std::string &message, int line = -1,
+                      int line_pos = -1);
 
 private:
   int line;
@@ -34,7 +35,8 @@ private:
  */
 class RuntimeError : public std::runtime_error {
 public:
-  RuntimeError(const std::string &message, int line = -1, int line_pos = -1);
+  explicit RuntimeError(const std::string &message, int line = -1,
+                        int line_pos = -1);
 
 private:
   int line;
@@ -46,7 +48,15 @@ private:
  */
 class Node {
 public:
+  Node() = default;
   virtual ~Node() = 0;
+
+  // Disallow copy and move.
+  Node(const Node &) = delete;
+  Node &operator=(const Node &) = delete;
+  Node(Node &&) = delete;
+  Node &operator=(Node &&) = delete;
+
   [[nodiscard]] virtual std::string print() const = 0;
 };
 
@@ -64,7 +74,7 @@ public:
  */
 class Symbol : public Node {
 public:
-  Symbol(const std::string &str);
+  explicit Symbol(std::string str);
   [[nodiscard]] std::string print() const override;
 
   [[nodiscard]] const std::string &get_symbol() const;
@@ -78,7 +88,7 @@ private:
  */
 class Keyword : public Hashable {
 public:
-  Keyword(const std::string &str);
+  explicit Keyword(const std::string &str);
   [[nodiscard]] std::string print() const override;
 
   [[nodiscard]] std::size_t hash() const override {
@@ -99,7 +109,7 @@ private:
  */
 class String : public Hashable {
 public:
-  String(const std::string &str);
+  explicit String(const std::string &str);
   [[nodiscard]] std::string print() const override;
 
   [[nodiscard]] std::size_t hash() const override {
@@ -120,8 +130,8 @@ private:
  */
 class Number : public Node {
 public:
-  Number(const std::string &str);
-  Number(const int num);
+  explicit Number(const std::string &str);
+  explicit Number(const int num);
   [[nodiscard]] std::string print() const override;
   [[nodiscard]] int get_number() const;
 
@@ -136,7 +146,7 @@ class List : public Node {
 public:
   enum class Kind : std::uint8_t { List, Vector };
 
-  List(Kind kind);
+  explicit List(Kind kind);
   List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes);
   [[nodiscard]] std::string print() const override;
 
@@ -206,10 +216,16 @@ public:
 /**
  * Main line reader/parser implementation.
  */
-class Reader {
+class Reader final {
 public:
-  Reader(const std::string &line);
+  explicit Reader(const std::string &line);
   ~Reader();
+
+  // Disallow copy and move.
+  Reader(const Reader &) = delete;
+  Reader &operator=(const Reader &) = delete;
+  Reader(Reader &&) = delete;
+  Reader &operator=(Reader &&) = delete;
 
   std::optional<std::shared_ptr<Node>> read_form();
 

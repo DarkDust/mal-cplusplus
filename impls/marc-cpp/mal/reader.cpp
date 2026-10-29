@@ -14,7 +14,7 @@ struct Reader::Impl {
   std::vector<std::string> tokens;
   std::vector<std::string>::iterator pos;
 
-  Impl(const std::string &line) {
+  explicit Impl(const std::string &line) {
     std::regex pattern(
         "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\\\.|[^\\\\\"])*\"?|;."
         "*|[^\\s\\[\\]{}('\"`,;)]*)");
@@ -84,10 +84,9 @@ struct Reader::Impl {
       throw ParseError("not a list");
     }
 
-    List::Kind kind;
+    auto kind = List::Kind::List;
     std::string closing;
     if (token == "(") {
-      kind = List::Kind::List;
       closing = ")";
     } else if (token == "[") {
       kind = List::Kind::Vector;

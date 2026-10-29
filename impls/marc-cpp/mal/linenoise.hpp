@@ -1,3 +1,5 @@
+// NOLINTBEGIN
+
 /*
  *  linenoise.hpp -- Multi-platform C++ header-only linenoise library.
  *
@@ -3053,3 +3055,5 @@ inline void PrintKeyCodes() {
 } // namespace linenoise
 
 #endif /* LINENOISE_HPP */
+
+// NOLINTEND

@@ -6,7 +6,7 @@ module mal;
 
 using namespace mal;
 
-Symbol::Symbol(const std::string &str) { this->sym = str; }
+Symbol::Symbol(std::string str) : sym(std::move(str)) {}
 
 std::string Symbol::print() const { return this->sym; }
 

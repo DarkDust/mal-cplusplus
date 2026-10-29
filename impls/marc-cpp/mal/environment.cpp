@@ -16,8 +16,8 @@ public:
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<Number>(args[0]);
-    auto b = dynamic_pointer_cast<Number>(args[1]);
+    auto a = dynamic_pointer_cast<Number>(args.at(0));
+    auto b = dynamic_pointer_cast<Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }
@@ -38,8 +38,8 @@ public:
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<Number>(args[0]);
-    auto b = dynamic_pointer_cast<Number>(args[1]);
+    auto a = dynamic_pointer_cast<Number>(args.at(0));
+    auto b = dynamic_pointer_cast<Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }
@@ -60,8 +60,8 @@ public:
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<Number>(args[0]);
-    auto b = dynamic_pointer_cast<Number>(args[1]);
+    auto a = dynamic_pointer_cast<Number>(args.at(0));
+    auto b = dynamic_pointer_cast<Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }
@@ -82,8 +82,8 @@ public:
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<Number>(args[0]);
-    auto b = dynamic_pointer_cast<Number>(args[1]);
+    auto a = dynamic_pointer_cast<Number>(args.at(0));
+    auto b = dynamic_pointer_cast<Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }

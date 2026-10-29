@@ -5,9 +5,8 @@
 import mal;
 
 std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
-  auto reader = new mal::Reader(line);
-  auto result = reader->read_form();
-  delete reader;
+  auto reader = mal::Reader(line);
+  auto result = reader.read_form();
   return result;
 }
 
@@ -40,7 +39,7 @@ eval(const std::optional<std::shared_ptr<mal::Node>> &node,
       evaluated.push_back(*recursed);
     }
 
-    auto func = std::dynamic_pointer_cast<mal::BuiltinLambda>(evaluated[0]);
+    auto func = std::dynamic_pointer_cast<mal::BuiltinLambda>(evaluated.at(0));
     if (func) {
       evaluated.erase(evaluated.begin());
       return func->eval(evaluated);
