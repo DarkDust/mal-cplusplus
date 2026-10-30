@@ -12,6 +12,53 @@ std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
 
 std::optional<std::shared_ptr<mal::Node>>
 eval(const std::optional<std::shared_ptr<mal::Node>> &node,
+     std::shared_ptr<mal::Environment> &env);
+
+std::optional<std::shared_ptr<mal::Node>>
+eval_list(std::shared_ptr<mal::List> &list,
+          std::shared_ptr<mal::Environment> &env) {
+  auto &nodes = list->get_nodes();
+  std::vector<std::shared_ptr<mal::Node>> evaluated;
+  evaluated.reserve(nodes.size());
+
+  for (auto &node : nodes) {
+    auto recursed = eval(node, env);
+    if (!recursed) {
+      throw mal::RuntimeError("empty result from eval");
+    }
+
+    evaluated.push_back(*recursed);
+  }
+
+  auto func = std::dynamic_pointer_cast<mal::BuiltinLambda>(evaluated.at(0));
+  if (func && list->get_kind() == mal::List::Kind::List) {
+    evaluated.erase(evaluated.begin());
+    return func->eval(evaluated);
+  } else {
+    return std::make_shared<mal::List>(list->get_kind(), evaluated);
+  }
+}
+
+std::optional<std::shared_ptr<mal::Node>>
+eval_hash_map(std::shared_ptr<mal::HashMap> &map,
+              std::shared_ptr<mal::Environment> &env) {
+
+  auto result = std::make_shared<mal::HashMap>();
+
+  for (auto it = map->cbegin(); it != map->cend(); it++) {
+    auto evaluated = eval(it->second, env);
+    if (!evaluated) {
+      throw mal::RuntimeError("failed to evaluate hash map value");
+    }
+
+    result->set(it->first, *evaluated);
+  }
+
+  return result;
+}
+
+std::optional<std::shared_ptr<mal::Node>>
+eval(const std::optional<std::shared_ptr<mal::Node>> &node,
      std::shared_ptr<mal::Environment> &env) {
 
   if (!node) {
@@ -26,26 +73,12 @@ eval(const std::optional<std::shared_ptr<mal::Node>> &node,
 
   auto list = std::dynamic_pointer_cast<mal::List>(*node);
   if (list && !list->get_nodes().empty()) {
-    auto &nodes = list->get_nodes();
-    std::vector<std::shared_ptr<mal::Node>> evaluated;
-    evaluated.reserve(nodes.size());
+    return eval_list(list, env);
+  }
 
-    for (auto &node : nodes) {
-      auto recursed = eval(node, env);
-      if (!recursed) {
-        throw mal::RuntimeError("empty result from eval");
-      }
-
-      evaluated.push_back(*recursed);
-    }
-
-    auto func = std::dynamic_pointer_cast<mal::BuiltinLambda>(evaluated.at(0));
-    if (func) {
-      evaluated.erase(evaluated.begin());
-      return func->eval(evaluated);
-    } else {
-      return std::make_shared<mal::List>(mal::List::Kind::List, evaluated);
-    }
+  auto map = std::dynamic_pointer_cast<mal::HashMap>(*node);
+  if (map) {
+    return eval_hash_map(map, env);
   }
 
   return node;

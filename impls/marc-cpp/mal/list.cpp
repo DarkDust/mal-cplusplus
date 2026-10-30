@@ -35,6 +35,8 @@ std::string List::print() const {
 
 void List::append(std::shared_ptr<Node> &node) { this->nodes.push_back(node); }
 
+const List::Kind List::get_kind() const { return this->kind; }
+
 const std::vector<std::shared_ptr<Node>> &List::get_nodes() const {
   return this->nodes;
 }

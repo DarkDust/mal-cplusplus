@@ -152,6 +152,7 @@ public:
 
   void append(std::shared_ptr<Node> &node);
 
+  [[nodiscard]] const Kind get_kind() const;
   [[nodiscard]] const std::vector<std::shared_ptr<Node>> &get_nodes() const;
 
 private:
@@ -168,6 +169,8 @@ public:
   [[nodiscard]] std::string print() const override;
 
   void set(std::shared_ptr<const Hashable> key, std::shared_ptr<Node> value);
+  [[nodiscard]] const auto cbegin() { return this->map.cbegin(); }
+  [[nodiscard]] const auto cend() { return this->map.cend(); }
 
 private:
   struct KeyHash {
