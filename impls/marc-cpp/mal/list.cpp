@@ -10,7 +10,7 @@ using namespace mal;
 
 List::List(Kind kind) : nodes{}, kind(kind) {}
 
-List::List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes)
+List::List(Kind kind, const std::vector<ConstNodePtr> &nodes)
     : nodes(nodes), kind(kind) {}
 
 std::string List::print() const {
@@ -33,10 +33,8 @@ std::string List::print() const {
   return result;
 }
 
-void List::append(std::shared_ptr<Node> &node) { this->nodes.push_back(node); }
+void List::append(const ConstNodePtr &node) { this->nodes.push_back(node); }
 
 const List::Kind List::get_kind() const { return this->kind; }
 
-const std::vector<std::shared_ptr<Node>> &List::get_nodes() const {
-  return this->nodes;
-}
+const std::vector<ConstNodePtr> &List::get_nodes() const { return this->nodes; }

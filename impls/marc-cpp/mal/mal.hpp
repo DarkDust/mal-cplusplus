@@ -60,6 +60,10 @@ public:
   [[nodiscard]] virtual std::string print() const = 0;
 };
 
+// Type aliases for more compact/convenient handling.
+using NodePtr = std::shared_ptr<Node>;
+using ConstNodePtr = std::shared_ptr<const Node>;
+
 /**
  * Virtual parent class for AST nodes that can be used a keys for hash maps.
  */
@@ -147,17 +151,17 @@ public:
   enum class Kind : std::uint8_t { List, Vector };
 
   explicit List(Kind kind);
-  List(Kind kind, const std::vector<std::shared_ptr<Node>> &nodes);
+  List(Kind kind, const std::vector<ConstNodePtr> &nodes);
   [[nodiscard]] std::string print() const override;
 
-  void append(std::shared_ptr<Node> &node);
+  void append(const ConstNodePtr &node);
 
   [[nodiscard]] const Kind get_kind() const;
-  [[nodiscard]] const std::vector<std::shared_ptr<Node>> &get_nodes() const;
+  [[nodiscard]] const std::vector<ConstNodePtr> &get_nodes() const;
 
 private:
   Kind kind;
-  std::vector<std::shared_ptr<Node>> nodes;
+  std::vector<ConstNodePtr> nodes;
 };
 
 /**
@@ -168,9 +172,10 @@ public:
   HashMap();
   [[nodiscard]] std::string print() const override;
 
-  void set(std::shared_ptr<const Hashable> key, std::shared_ptr<Node> value);
-  [[nodiscard]] const auto cbegin() { return this->map.cbegin(); }
-  [[nodiscard]] const auto cend() { return this->map.cend(); }
+  void set(const std::shared_ptr<const Hashable> &key,
+           const ConstNodePtr &value);
+  [[nodiscard]] const auto begin() const { return this->map.cbegin(); }
+  [[nodiscard]] const auto end() const { return this->map.cend(); }
 
 private:
   struct KeyHash {
@@ -186,8 +191,8 @@ private:
     }
   };
 
-  std::unordered_map<std::shared_ptr<const Hashable>, std::shared_ptr<Node>,
-                     KeyHash, KeyEqual>
+  std::unordered_map<std::shared_ptr<const Hashable>, ConstNodePtr, KeyHash,
+                     KeyEqual>
       map;
 };
 
@@ -197,14 +202,13 @@ private:
  */
 class Future : public Node {
 public:
-  Future(std::string prefix, std::string suffix,
-         std::shared_ptr<Node> contained);
+  Future(std::string prefix, std::string suffix, ConstNodePtr contained);
   [[nodiscard]] std::string print() const override;
 
 private:
   std::string prefix;
   std::string suffix;
-  std::shared_ptr<Node> contained;
+  ConstNodePtr contained;
 };
 
 /**
@@ -212,8 +216,8 @@ private:
  */
 class BuiltinLambda : public Node {
 public:
-  virtual std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) = 0;
+  [[nodiscard]] virtual std::optional<ConstNodePtr>
+  eval(std::vector<ConstNodePtr> args) const = 0;
 };
 
 /**
@@ -230,7 +234,7 @@ public:
   Reader(Reader &&) = delete;
   Reader &operator=(Reader &&) = delete;
 
-  std::optional<std::shared_ptr<Node>> read_form();
+  std::optional<ConstNodePtr> read_form();
 
 private:
   // Hide the actual implementation detail.s
@@ -246,10 +250,10 @@ public:
   Environment();
 
   /** Lookup a symbol. */
-  std::optional<std::shared_ptr<Node>> get(const std::string &key);
+  std::optional<ConstNodePtr> get(const std::string &key);
 
   /** Add a symbol to the environment. */
-  void set(const std::string &key, std::shared_ptr<Node> val);
+  void set(const std::string &key, ConstNodePtr val);
 
   /** Remove a symbol from the environment. */
   void remove(const std::string &key);
@@ -258,7 +262,7 @@ public:
   void populate_with_default();
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<Node>> map;
+  std::unordered_map<std::string, ConstNodePtr> map;
 };
 
 } // namespace mal

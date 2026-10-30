@@ -52,7 +52,7 @@ struct Reader::Impl {
     return *this->pos;
   }
 
-  std::optional<std::shared_ptr<Node>> read_form() {
+  std::optional<ConstNodePtr> read_form() {
     auto token = this->peek();
     if (!token || token->length() == 0) {
       return std::nullopt;
@@ -78,7 +78,7 @@ struct Reader::Impl {
     }
   }
 
-  std::optional<std::shared_ptr<List>> read_list() {
+  std::optional<std::shared_ptr<const List>> read_list() {
     auto token = this->next();
     if (!token) {
       throw ParseError("not a list");
@@ -119,7 +119,7 @@ struct Reader::Impl {
     return list;
   }
 
-  std::optional<std::shared_ptr<HashMap>> read_hashmap() {
+  std::optional<std::shared_ptr<const HashMap>> read_hashmap() {
     auto token = this->next();
     if (!token) {
       throw ParseError("not a hash map");
@@ -142,7 +142,7 @@ struct Reader::Impl {
       if (!raw_key) {
         throw ParseError("unexpected unbalanced hash map");
       }
-      auto key = dynamic_pointer_cast<Hashable>(*raw_key);
+      auto key = dynamic_pointer_cast<const Hashable>(*raw_key);
       if (!key) {
         throw ParseError("invalid key type");
       }
@@ -158,7 +158,7 @@ struct Reader::Impl {
     return map;
   }
 
-  std::optional<std::shared_ptr<Node>> read_atom() {
+  std::optional<ConstNodePtr> read_atom() {
     auto token = this->next();
     if (!token || token->length() == 0) {
       throw ParseError("Missing atom");
@@ -193,7 +193,7 @@ struct Reader::Impl {
 
   // Stuff that is going to be implemented at a later time, but that is already
   // covered by tests.
-  std::optional<std::shared_ptr<Node>> read_future() {
+  std::optional<ConstNodePtr> read_future() {
     const auto token = this->next();
     if (!token || token->length() == 0) {
       throw ParseError("missing token");
@@ -246,6 +246,4 @@ Reader::Reader(const std::string &line) : impl(std::make_unique<Impl>(line)) {}
 
 Reader::~Reader() = default;
 
-std::optional<std::shared_ptr<Node>> Reader::read_form() {
-  return impl->read_form();
-}
+std::optional<ConstNodePtr> Reader::read_form() { return impl->read_form(); }

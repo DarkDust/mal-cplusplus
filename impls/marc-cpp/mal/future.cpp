@@ -6,8 +6,7 @@ module mal;
 
 using namespace mal;
 
-Future::Future(std::string prefix, std::string suffix,
-               std::shared_ptr<Node> contained)
+Future::Future(std::string prefix, std::string suffix, ConstNodePtr contained)
     : prefix(std::move(prefix)), suffix(std::move(suffix)),
       contained(std::move(contained)) {}
 

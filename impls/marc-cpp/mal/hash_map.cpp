@@ -8,8 +8,8 @@ using namespace mal;
 
 HashMap::HashMap() : map{} {}
 
-void HashMap::set(std::shared_ptr<const Hashable> key,
-                  std::shared_ptr<Node> val) {
+void HashMap::set(const std::shared_ptr<const Hashable> &key,
+                  const ConstNodePtr &val) {
   this->map.emplace(key, val);
 }
 

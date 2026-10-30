@@ -4,21 +4,21 @@
 #include <string>
 import mal;
 
-std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
+std::optional<mal::ConstNodePtr> read(const std::string &line) {
   auto reader = mal::Reader(line);
   auto result = reader.read_form();
   return result;
 }
 
-std::optional<std::shared_ptr<mal::Node>>
-eval(const std::optional<std::shared_ptr<mal::Node>> &node,
+std::optional<mal::ConstNodePtr>
+eval(const std::optional<mal::ConstNodePtr> &node,
      std::shared_ptr<mal::Environment> &env);
 
-std::optional<std::shared_ptr<mal::Node>>
-eval_list(std::shared_ptr<mal::List> &list,
+std::optional<mal::ConstNodePtr>
+eval_list(std::shared_ptr<const mal::List> &list,
           std::shared_ptr<mal::Environment> &env) {
   auto &nodes = list->get_nodes();
-  std::vector<std::shared_ptr<mal::Node>> evaluated;
+  std::vector<mal::ConstNodePtr> evaluated;
   evaluated.reserve(nodes.size());
 
   for (auto &node : nodes) {
@@ -30,7 +30,8 @@ eval_list(std::shared_ptr<mal::List> &list,
     evaluated.push_back(*recursed);
   }
 
-  auto func = std::dynamic_pointer_cast<mal::BuiltinLambda>(evaluated.at(0));
+  auto func =
+      std::dynamic_pointer_cast<const mal::BuiltinLambda>(evaluated.at(0));
   if (func && list->get_kind() == mal::List::Kind::List) {
     evaluated.erase(evaluated.begin());
     return func->eval(evaluated);
@@ -39,44 +40,44 @@ eval_list(std::shared_ptr<mal::List> &list,
   }
 }
 
-std::optional<std::shared_ptr<mal::Node>>
-eval_hash_map(std::shared_ptr<mal::HashMap> &map,
+std::optional<mal::ConstNodePtr>
+eval_hash_map(std::shared_ptr<const mal::HashMap> &map,
               std::shared_ptr<mal::Environment> &env) {
 
   auto result = std::make_shared<mal::HashMap>();
 
-  for (auto it = map->cbegin(); it != map->cend(); it++) {
-    auto evaluated = eval(it->second, env);
+  for (auto &[key, value] : *map) {
+    auto evaluated = eval(value, env);
     if (!evaluated) {
       throw mal::RuntimeError("failed to evaluate hash map value");
     }
 
-    result->set(it->first, *evaluated);
+    result->set(key, *evaluated);
   }
 
   return result;
 }
 
-std::optional<std::shared_ptr<mal::Node>>
-eval(const std::optional<std::shared_ptr<mal::Node>> &node,
+std::optional<mal::ConstNodePtr>
+eval(const std::optional<mal::ConstNodePtr> &node,
      std::shared_ptr<mal::Environment> &env) {
 
   if (!node) {
     return std::nullopt;
   }
 
-  auto symbol = std::dynamic_pointer_cast<mal::Symbol>(*node);
+  auto symbol = std::dynamic_pointer_cast<const mal::Symbol>(*node);
   if (symbol) {
     auto result = env->get(symbol->get_symbol());
     return result ?: symbol;
   }
 
-  auto list = std::dynamic_pointer_cast<mal::List>(*node);
+  auto list = std::dynamic_pointer_cast<const mal::List>(*node);
   if (list && !list->get_nodes().empty()) {
     return eval_list(list, env);
   }
 
-  auto map = std::dynamic_pointer_cast<mal::HashMap>(*node);
+  auto map = std::dynamic_pointer_cast<const mal::HashMap>(*node);
   if (map) {
     return eval_hash_map(map, env);
   }
@@ -84,7 +85,7 @@ eval(const std::optional<std::shared_ptr<mal::Node>> &node,
   return node;
 }
 
-std::string print(const std::optional<std::shared_ptr<mal::Node>> &node) {
+std::string print(const std::optional<mal::ConstNodePtr> &node) {
   if (!node) {
     return "";
   }

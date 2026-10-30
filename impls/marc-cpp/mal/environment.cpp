@@ -16,14 +16,14 @@ public:
   BuiltinLambdaArithmetic(std::string name, Operation op)
       : name(std::move(name)), op(std::move(op)) {};
 
-  std::optional<std::shared_ptr<Node>>
-  eval(std::vector<std::shared_ptr<Node>> args) override {
+  [[nodiscard]] std::optional<ConstNodePtr>
+  eval(std::vector<ConstNodePtr> args) const override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<Number>(args.at(0));
-    auto b = dynamic_pointer_cast<Number>(args.at(1));
+    auto a = dynamic_pointer_cast<const Number>(args.at(0));
+    auto b = dynamic_pointer_cast<const Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }
@@ -42,7 +42,7 @@ private:
 
 Environment::Environment() : map{} {}
 
-std::optional<std::shared_ptr<Node>> Environment::get(const std::string &key) {
+std::optional<ConstNodePtr> Environment::get(const std::string &key) {
   auto r = this->map.find(key);
   if (r != this->map.end()) {
     return (*r).second;
@@ -51,7 +51,7 @@ std::optional<std::shared_ptr<Node>> Environment::get(const std::string &key) {
   }
 }
 
-void Environment::set(const std::string &key, std::shared_ptr<Node> val) {
+void Environment::set(const std::string &key, ConstNodePtr val) {
   this->map.emplace(key, val);
 }
 

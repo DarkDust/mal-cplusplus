@@ -2,18 +2,18 @@
 #include <string>
 import mal;
 
-std::optional<std::shared_ptr<mal::Node>> read(const std::string &line) {
+std::optional<mal::ConstNodePtr> read(const std::string &line) {
   auto reader = mal::Reader(line);
   auto result = reader.read_form();
   return result;
 }
 
-std::optional<std::shared_ptr<mal::Node>>
-eval(const std::optional<std::shared_ptr<mal::Node>> &node) {
+std::optional<mal::ConstNodePtr>
+eval(const std::optional<mal::ConstNodePtr> &node) {
   return node;
 }
 
-std::string print(const std::optional<std::shared_ptr<mal::Node>> &node) {
+std::string print(const std::optional<mal::ConstNodePtr> &node) {
   if (!node) {
     return "";
   }
