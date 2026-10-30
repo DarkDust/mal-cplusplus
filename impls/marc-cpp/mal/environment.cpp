@@ -58,12 +58,20 @@ void Environment::set(const std::string &key, std::shared_ptr<Node> val) {
 void Environment::remove(const std::string &key) { this->map.erase(key); }
 
 void Environment::populate_with_default() {
-  this->set("+", std::make_shared<BuiltinLambdaArithmetic>(
-                     "+", [](int a, int b) { return a + b; }));
-  this->set("-", std::make_shared<BuiltinLambdaArithmetic>(
-                     "+", [](int a, int b) { return a - b; }));
-  this->set("*", std::make_shared<BuiltinLambdaArithmetic>(
-                     "+", [](int a, int b) { return a * b; }));
-  this->set("/", std::make_shared<BuiltinLambdaArithmetic>(
-                     "+", [](int a, int b) { return a / b; }));
+  auto add = [this](const std::string &name,
+                    BuiltinLambdaArithmetic::Operation op) {
+    this->set(name,
+              std::make_shared<BuiltinLambdaArithmetic>(name, std::move(op)));
+  };
+
+  add("+", std::plus<int>{});
+  add("-", std::minus<int>{});
+  add("*", std::multiplies<int>{});
+  add("/", [](int a, int b) {
+    if (b == 0) {
+      throw RuntimeError("division by zero");
+    }
+
+    return a / b;
+  });
 }
