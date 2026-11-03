@@ -13,6 +13,60 @@ std::optional<mal::ConstNodePtr>
 eval(const std::optional<mal::ConstNodePtr> &node, mal::EnvironmentPtr &env);
 
 std::optional<mal::ConstNodePtr>
+eval_specials(const std::string &symbol_value,
+              const std::vector<mal::ConstNodePtr> &nodes,
+              mal::EnvironmentPtr &env) {
+  if (symbol_value == "def!") {
+    auto key = nodes.at(1).cast<const mal::Symbol>();
+    if (!key) {
+      throw mal::RuntimeError("first argument to `def!` is not a symbol");
+    }
+
+    auto value = eval(nodes.at(2), env);
+    if (!value) {
+      throw mal::RuntimeError("empty result from eval");
+    }
+
+    env->set((*key)->get_symbol(), *value);
+    return value;
+  }
+
+  if (symbol_value == "let*") {
+    auto sub_env = mal::make_nonnull_shared<mal::Environment>(env);
+    auto list = nodes.at(1).cast<const mal::List>();
+    if (!list) {
+      throw mal::RuntimeError("first argument to `let*` is not a list");
+    }
+    auto let_nodes = (*list)->get_nodes();
+    if (let_nodes.size() % 2 != 0) {
+      throw mal::RuntimeError("uneven list in argument to `let*`");
+    }
+
+    auto it = let_nodes.begin();
+    auto end = let_nodes.end();
+    while (it != end) {
+      auto maybe_key = *it++;
+      auto value = *it++;
+
+      auto key = maybe_key.cast<const mal::Symbol>();
+      if (!key) {
+        throw mal::RuntimeError("key is not a symbol in `let*`");
+      }
+      auto evaluated_value = eval(value, sub_env);
+      if (!evaluated_value) {
+        throw mal::RuntimeError("empty return in eval");
+      }
+
+      sub_env->set((*key)->get_symbol(), *evaluated_value);
+    }
+
+    return eval(nodes.at(2), sub_env);
+  }
+
+  return std::nullopt;
+}
+
+std::optional<mal::ConstNodePtr>
 eval_list(mal::NonNullSharedPtr<const mal::List> &list,
           mal::EnvironmentPtr &env) {
   auto &nodes = list->get_nodes();
@@ -27,51 +81,9 @@ eval_list(mal::NonNullSharedPtr<const mal::List> &list,
     auto symbol = nodes.at(0).cast<const mal::Symbol>();
     if (symbol) {
       auto symbol_value = (*symbol)->get_symbol();
-      if (symbol_value == "def!") {
-        auto key = nodes.at(1).cast<const mal::Symbol>();
-        if (!key) {
-          throw mal::RuntimeError("first argument to `def!` is not a symbol");
-        }
-
-        auto value = eval(nodes.at(2), env);
-        if (!value) {
-          throw mal::RuntimeError("empty result from eval");
-        }
-
-        env->set((*key)->get_symbol(), *value);
-        return value;
-      }
-
-      if (symbol_value == "let*") {
-        auto sub_env = mal::make_nonnull_shared<mal::Environment>(env);
-        auto list = nodes.at(1).cast<const mal::List>();
-        if (!list) {
-          throw mal::RuntimeError("first argument to `let*` is not a list");
-        }
-        auto let_nodes = (*list)->get_nodes();
-        if (let_nodes.size() % 2 != 0) {
-          throw mal::RuntimeError("uneven list in argument to `let*`");
-        }
-
-        auto it = let_nodes.begin();
-        auto end = let_nodes.end();
-        while (it != end) {
-          auto maybe_key = *it++;
-          auto value = *it++;
-
-          auto key = maybe_key.cast<const mal::Symbol>();
-          if (!key) {
-            throw mal::RuntimeError("key is not a symbol in `let*`");
-          }
-          auto evaluated_value = eval(value, sub_env);
-          if (!evaluated_value) {
-            throw mal::RuntimeError("empty return in eval");
-          }
-
-          sub_env->set((*key)->get_symbol(), *evaluated_value);
-        }
-
-        return eval(nodes.at(2), sub_env);
+      auto evaluated = eval_specials(symbol_value, nodes, env);
+      if (evaluated) {
+        return evaluated;
       }
     }
   }
