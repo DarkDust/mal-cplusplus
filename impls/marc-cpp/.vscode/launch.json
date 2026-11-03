@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug step2_eval",
+            "name": "Debug step3_env",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/step2_eval",
+            "program": "${workspaceFolder}/step3_env",
             "cwd": "${workspaceFolder}",
             "terminal": "integrated",
-            "preLaunchTask": "build step2_eval (debug)"
+            "preLaunchTask": "build step3_env (debug)"
         }
     ]
 }

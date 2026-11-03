@@ -247,10 +247,11 @@ private:
  */
 class Environment {
 public:
-  Environment();
+  explicit Environment(
+      std::optional<std::shared_ptr<Environment>> parent = std::nullopt);
 
   /** Lookup a symbol. */
-  std::optional<ConstNodePtr> get(const std::string &key);
+  std::optional<ConstNodePtr> get(const std::string &key) const;
 
   /** Add a symbol to the environment. */
   void set(const std::string &key, ConstNodePtr val);
@@ -262,7 +263,10 @@ public:
   void populate_with_default();
 
 private:
+  std::optional<std::shared_ptr<Environment>> parent;
   std::unordered_map<std::string, ConstNodePtr> map;
 };
+
+using EnvironmentPtr = std::shared_ptr<Environment>;
 
 } // namespace mal

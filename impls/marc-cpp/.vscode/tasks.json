@@ -2,12 +2,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build step2_eval (debug)",
+            "label": "build step3_env (debug)",
             "type": "process",
             "command": "make",
             "args": [
                 "-B",
-                "step2_eval",
+                "step3_env",
                 "CXXFLAGS=-std=c++23 -fcxx-modules -g -O0"
             ],
             "options": {

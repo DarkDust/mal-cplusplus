@@ -40,19 +40,22 @@ private:
   Operation op;
 };
 
-Environment::Environment() : map{} {}
+Environment::Environment(std::optional<std::shared_ptr<Environment>> parent)
+    : parent(std::move(parent)), map{} {}
 
-std::optional<ConstNodePtr> Environment::get(const std::string &key) {
+std::optional<ConstNodePtr> Environment::get(const std::string &key) const {
   auto r = this->map.find(key);
   if (r != this->map.end()) {
     return (*r).second;
+  } else if (this->parent) {
+    return (*this->parent)->get(key);
   } else {
     return std::nullopt;
   }
 }
 
 void Environment::set(const std::string &key, ConstNodePtr val) {
-  this->map.emplace(key, val);
+  this->map.insert_or_assign(key, val);
 }
 
 void Environment::remove(const std::string &key) { this->map.erase(key); }
