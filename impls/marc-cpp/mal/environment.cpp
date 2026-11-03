@@ -1,7 +1,6 @@
 module;
 
 #include <functional>
-#include <memory>
 #include <optional>
 #include <vector>
 
@@ -16,21 +15,22 @@ public:
   BuiltinLambdaArithmetic(std::string name, Operation op)
       : name(std::move(name)), op(std::move(op)) {};
 
-  [[nodiscard]] std::optional<ConstNodePtr>
+  [[nodiscard]] ConstNodePtr
   eval(std::vector<ConstNodePtr> args) const override {
     if (args.size() != 2) {
       throw RuntimeError("invalid number of arguments");
     }
 
-    auto a = dynamic_pointer_cast<const Number>(args.at(0));
-    auto b = dynamic_pointer_cast<const Number>(args.at(1));
+    auto a = args.at(0).cast<const Number>();
+    auto b = args.at(1).cast<const Number>();
+    // auto a = dynamic_pointer_cast<const Number>(args.at(0));
+    // auto b = dynamic_pointer_cast<const Number>(args.at(1));
     if (!a || !b) {
       throw RuntimeError("argument is not a number");
     }
 
-    int result = this->op(a->get_number(), b->get_number());
-    auto node = std::make_shared<Number>(result);
-    return node;
+    int result = this->op((*a)->get_number(), (*b)->get_number());
+    return make_nonnull_shared<Number>(result);
   }
 
   [[nodiscard]] std::string print() const override { return this->name; }
@@ -40,7 +40,7 @@ private:
   Operation op;
 };
 
-Environment::Environment(std::optional<std::shared_ptr<Environment>> parent)
+Environment::Environment(std::optional<NonNullSharedPtr<Environment>> parent)
     : parent(std::move(parent)), map{} {}
 
 std::optional<ConstNodePtr> Environment::get(const std::string &key) const {
@@ -63,8 +63,9 @@ void Environment::remove(const std::string &key) { this->map.erase(key); }
 void Environment::populate_with_default() {
   auto add = [this](const std::string &name,
                     BuiltinLambdaArithmetic::Operation op) {
-    this->set(name,
-              std::make_shared<BuiltinLambdaArithmetic>(name, std::move(op)));
+    auto func =
+        make_nonnull_shared<BuiltinLambdaArithmetic>(name, std::move(op));
+    this->set(name, func);
   };
 
   add("+", std::plus<int>{});

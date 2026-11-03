@@ -10,3 +10,5 @@ Checks: >
   -performance-avoid-endl
 HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: '(^|/)linenoise\.hpp$'
+CheckOptions:
+  cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions: true

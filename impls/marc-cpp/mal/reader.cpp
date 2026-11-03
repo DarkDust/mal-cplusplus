@@ -1,6 +1,5 @@
 module;
 
-#include <memory>
 #include <optional>
 #include <regex>
 #include <string>
@@ -52,33 +51,7 @@ struct Reader::Impl {
     return *this->pos;
   }
 
-  std::optional<ConstNodePtr> read_form() {
-    auto token = this->peek();
-    if (!token || token->length() == 0) {
-      return std::nullopt;
-    }
-
-    char first_char = token->at(0);
-    switch (first_char) {
-    case '(':
-    case '[':
-      return this->read_list();
-
-    case '{':
-      return this->read_hashmap();
-
-    case '\'':
-    case '`':
-    case '~':
-    case '@':
-      return this->read_future();
-
-    default:
-      return this->read_atom();
-    }
-  }
-
-  std::optional<std::shared_ptr<const List>> read_list() {
+  NonNullSharedPtr<const List> read_list() {
     auto token = this->next();
     if (!token) {
       throw ParseError("not a list");
@@ -95,7 +68,7 @@ struct Reader::Impl {
       throw ParseError("not a list");
     }
 
-    auto list = std::make_shared<List>(kind);
+    auto list = make_nonnull_shared<List>(kind);
 
     while (true) {
       auto token = this->peek();
@@ -119,13 +92,13 @@ struct Reader::Impl {
     return list;
   }
 
-  std::optional<std::shared_ptr<const HashMap>> read_hashmap() {
+  NonNullSharedPtr<const HashMap> read_hashmap() {
     auto token = this->next();
     if (!token) {
       throw ParseError("not a hash map");
     }
 
-    auto map = std::make_shared<HashMap>();
+    auto map = make_nonnull_shared<HashMap>();
 
     while (true) {
       auto token = this->peek();
@@ -142,7 +115,7 @@ struct Reader::Impl {
       if (!raw_key) {
         throw ParseError("unexpected unbalanced hash map");
       }
-      auto key = dynamic_pointer_cast<const Hashable>(*raw_key);
+      auto key = raw_key->cast<const Hashable>();
       if (!key) {
         throw ParseError("invalid key type");
       }
@@ -152,13 +125,13 @@ struct Reader::Impl {
         throw ParseError("unbalanced hash map, missing value");
       }
 
-      map->set(key, *val);
+      map->set(key->shared(), *val);
     }
 
     return map;
   }
 
-  std::optional<ConstNodePtr> read_atom() {
+  ConstNodePtr read_atom() {
     auto token = this->next();
     if (!token || token->length() == 0) {
       throw ParseError("Missing atom");
@@ -166,34 +139,34 @@ struct Reader::Impl {
 
     char first_character = token->at(0);
     if (first_character >= '0' && first_character <= '9') {
-      return std::make_shared<Number>(*token);
+      return make_nonnull_shared<Number>(*token);
 
     } else if (first_character == '-') {
       if (token->length() == 1) {
-        return std::make_shared<Symbol>(*token);
+        return make_nonnull_shared<Symbol>(*token);
       }
 
       char second_character = token->at(1);
       if (second_character >= '0' && second_character <= '9') {
-        return std::make_shared<Number>(*token);
+        return make_nonnull_shared<Number>(*token);
       } else {
-        return std::make_shared<Symbol>(*token);
+        return make_nonnull_shared<Symbol>(*token);
       }
 
     } else if (first_character == ':' && token->length() > 1) {
-      return std::make_shared<Keyword>(*token);
+      return make_nonnull_shared<Keyword>(*token);
 
     } else if (first_character == '"') {
-      return std::make_shared<String>(*token);
+      return make_nonnull_shared<String>(*token);
 
     } else {
-      return std::make_shared<Symbol>(*token);
+      return make_nonnull_shared<Symbol>(*token);
     }
   }
 
   // Stuff that is going to be implemented at a later time, but that is already
   // covered by tests.
-  std::optional<ConstNodePtr> read_future() {
+  ConstNodePtr read_future() {
     const auto token = this->next();
     if (!token || token->length() == 0) {
       throw ParseError("missing token");
@@ -206,7 +179,7 @@ struct Reader::Impl {
       if (!contained) {
         throw ParseError("missing form");
       }
-      return std::make_shared<Future>("(quote ", ")", *contained);
+      return make_nonnull_shared<Future>("(quote ", ")", *contained);
     }
 
     case '`': {
@@ -214,7 +187,7 @@ struct Reader::Impl {
       if (!contained) {
         throw ParseError("missing form");
       }
-      return std::make_shared<Future>("(quasiquote ", ")", *contained);
+      return make_nonnull_shared<Future>("(quasiquote ", ")", *contained);
     }
 
     case '~': {
@@ -223,9 +196,9 @@ struct Reader::Impl {
         throw ParseError("missing form");
       }
       if (token->length() > 1 && token->at(1) == '@') {
-        return std::make_shared<Future>("(splice-unquote ", ")", *contained);
+        return make_nonnull_shared<Future>("(splice-unquote ", ")", *contained);
       }
-      return std::make_shared<Future>("(unquote ", ")", *contained);
+      return make_nonnull_shared<Future>("(unquote ", ")", *contained);
     }
 
     case '@': {
@@ -233,11 +206,37 @@ struct Reader::Impl {
       if (!contained) {
         throw ParseError("missing form");
       }
-      return std::make_shared<Future>("(deref ", ")", *contained);
+      return make_nonnull_shared<Future>("(deref ", ")", *contained);
     }
 
     default:
       throw ParseError("unknown future");
+    }
+  }
+
+  std::optional<ConstNodePtr> read_form() {
+    auto token = this->peek();
+    if (!token || token->length() == 0) {
+      return std::nullopt;
+    }
+
+    char first_char = token->at(0);
+    switch (first_char) {
+    case '(':
+    case '[':
+      return this->read_list();
+
+    case '{':
+      return this->read_hashmap();
+
+    case '\'':
+    case '`':
+    case '~':
+    case '@':
+      return this->read_future();
+
+    default:
+      return this->read_atom();
     }
   }
 };

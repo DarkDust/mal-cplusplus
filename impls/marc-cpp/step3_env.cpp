@@ -1,5 +1,4 @@
 #include <iostream>
-#include <memory>
 #include <optional>
 #include <string>
 import mal;
@@ -14,58 +13,66 @@ std::optional<mal::ConstNodePtr>
 eval(const std::optional<mal::ConstNodePtr> &node, mal::EnvironmentPtr &env);
 
 std::optional<mal::ConstNodePtr>
-eval_list(std::shared_ptr<const mal::List> &list, mal::EnvironmentPtr &env) {
+eval_list(mal::NonNullSharedPtr<const mal::List> &list,
+          mal::EnvironmentPtr &env) {
   auto &nodes = list->get_nodes();
+  if (nodes.empty()) {
+    return list;
+  }
+
   std::vector<mal::ConstNodePtr> evaluated;
   evaluated.reserve(nodes.size());
 
   if (nodes.size() >= 3) {
-    auto symbol = std::dynamic_pointer_cast<const mal::Symbol>(nodes.at(0));
-    if (symbol && symbol->get_symbol() == "def!") {
-      auto key = std::dynamic_pointer_cast<const mal::Symbol>(nodes.at(1));
-      if (!key) {
-        throw mal::RuntimeError("first argument to `def!` is not a symbol");
-      }
-
-      auto value = eval(nodes.at(2), env);
-      if (!value) {
-        throw mal::RuntimeError("empty result from eval");
-      }
-
-      env->set(key->get_symbol(), *value);
-      return value;
-    }
-
-    if (symbol && symbol->get_symbol() == "let*") {
-      auto sub_env = std::make_shared<mal::Environment>(env);
-      auto list = std::dynamic_pointer_cast<const mal::List>(nodes.at(1));
-      if (!list) {
-        throw mal::RuntimeError("first argument to `let*` is not a list");
-      }
-      auto let_nodes = list->get_nodes();
-      if (let_nodes.size() % 2 != 0) {
-        throw mal::RuntimeError("uneven list in argument to `let*`");
-      }
-
-      auto it = let_nodes.begin();
-      auto end = let_nodes.end();
-      while (it != end) {
-        auto maybe_key = *it++;
-        auto value = *it++;
-
-        auto key = std::dynamic_pointer_cast<const mal::Symbol>(maybe_key);
+    auto symbol = nodes.at(0).cast<const mal::Symbol>();
+    if (symbol) {
+      auto symbol_value = (*symbol)->get_symbol();
+      if (symbol_value == "def!") {
+        auto key = nodes.at(1).cast<const mal::Symbol>();
         if (!key) {
-          throw mal::RuntimeError("key is not a symbol in `let*`");
-        }
-        auto evaluated_value = eval(value, sub_env);
-        if (!evaluated_value) {
-          throw mal::RuntimeError("empty return in eval");
+          throw mal::RuntimeError("first argument to `def!` is not a symbol");
         }
 
-        sub_env->set(key->get_symbol(), *evaluated_value);
+        auto value = eval(nodes.at(2), env);
+        if (!value) {
+          throw mal::RuntimeError("empty result from eval");
+        }
+
+        env->set((*key)->get_symbol(), *value);
+        return value;
       }
 
-      return eval(nodes.at(2), sub_env);
+      if (symbol_value == "let*") {
+        auto sub_env = mal::make_nonnull_shared<mal::Environment>(env);
+        auto list = nodes.at(1).cast<const mal::List>();
+        if (!list) {
+          throw mal::RuntimeError("first argument to `let*` is not a list");
+        }
+        auto let_nodes = (*list)->get_nodes();
+        if (let_nodes.size() % 2 != 0) {
+          throw mal::RuntimeError("uneven list in argument to `let*`");
+        }
+
+        auto it = let_nodes.begin();
+        auto end = let_nodes.end();
+        while (it != end) {
+          auto maybe_key = *it++;
+          auto value = *it++;
+
+          auto key = maybe_key.cast<const mal::Symbol>();
+          if (!key) {
+            throw mal::RuntimeError("key is not a symbol in `let*`");
+          }
+          auto evaluated_value = eval(value, sub_env);
+          if (!evaluated_value) {
+            throw mal::RuntimeError("empty return in eval");
+          }
+
+          sub_env->set((*key)->get_symbol(), *evaluated_value);
+        }
+
+        return eval(nodes.at(2), sub_env);
+      }
     }
   }
 
@@ -78,11 +85,10 @@ eval_list(std::shared_ptr<const mal::List> &list, mal::EnvironmentPtr &env) {
     evaluated.push_back(*recursed);
   }
 
-  auto func =
-      std::dynamic_pointer_cast<const mal::BuiltinLambda>(evaluated.at(0));
+  auto func = evaluated.at(0).cast<const mal::BuiltinLambda>();
   if (func && list->get_kind() == mal::List::Kind::List) {
     evaluated.erase(evaluated.begin());
-    return func->eval(evaluated);
+    return (*func)->eval(evaluated);
   } else {
     throw mal::RuntimeError(
         std::format("{} not found", evaluated.at(0)->print()));
@@ -90,7 +96,8 @@ eval_list(std::shared_ptr<const mal::List> &list, mal::EnvironmentPtr &env) {
 }
 
 std::optional<mal::ConstNodePtr>
-eval_vector(std::shared_ptr<const mal::List> &list, mal::EnvironmentPtr &env) {
+eval_vector(mal::NonNullSharedPtr<const mal::List> &list,
+            mal::EnvironmentPtr &env) {
   auto &nodes = list->get_nodes();
   std::vector<mal::ConstNodePtr> evaluated;
   evaluated.reserve(nodes.size());
@@ -104,14 +111,15 @@ eval_vector(std::shared_ptr<const mal::List> &list, mal::EnvironmentPtr &env) {
     evaluated.push_back(*recursed);
   }
 
-  return std::make_shared<mal::List>(mal::List::Kind::Vector, evaluated);
+  return mal::make_nonnull_shared<mal::List>(mal::List::Kind::Vector,
+                                             evaluated);
 }
 
 std::optional<mal::ConstNodePtr>
-eval_hash_map(std::shared_ptr<const mal::HashMap> &map,
+eval_hash_map(mal::NonNullSharedPtr<const mal::HashMap> &map,
               mal::EnvironmentPtr &env) {
 
-  auto result = std::make_shared<mal::HashMap>();
+  auto result = mal::make_nonnull_shared<mal::HashMap>();
 
   for (auto &[key, value] : *map) {
     auto evaluated = eval(value, env);
@@ -132,25 +140,25 @@ eval(const std::optional<mal::ConstNodePtr> &node, mal::EnvironmentPtr &env) {
     return std::nullopt;
   }
 
-  auto symbol = std::dynamic_pointer_cast<const mal::Symbol>(*node);
+  auto symbol = node->cast<const mal::Symbol>();
   if (symbol) {
-    auto result = env->get(symbol->get_symbol());
+    auto result = env->get((*symbol)->get_symbol());
     return result ?: symbol;
   }
 
-  auto list = std::dynamic_pointer_cast<const mal::List>(*node);
-  if (list && !list->get_nodes().empty()) {
-    switch (list->get_kind()) {
+  auto list = node->cast<const mal::List>();
+  if (list) {
+    switch ((*list)->get_kind()) {
     case mal::List::Kind::List:
-      return eval_list(list, env);
+      return eval_list(*list, env);
     case mal::List::Kind::Vector:
-      return eval_vector(list, env);
+      return eval_vector(*list, env);
     }
   }
 
-  auto map = std::dynamic_pointer_cast<const mal::HashMap>(*node);
+  auto map = node->cast<const mal::HashMap>();
   if (map) {
-    return eval_hash_map(map, env);
+    return eval_hash_map(*map, env);
   }
 
   return node;
@@ -184,7 +192,7 @@ bool rep(mal::EnvironmentPtr &env) {
 
 int main(int argc, char **argv) {
   try {
-    auto env = std::make_shared<mal::Environment>();
+    auto env = mal::make_nonnull_shared<mal::Environment>();
     env->populate_with_default();
 
     while (rep(env)) {
