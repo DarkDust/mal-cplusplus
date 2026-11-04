@@ -1,5 +1,6 @@
 module;
 
+#include "linenoise.hpp"
 #include <optional>
 #include <regex>
 #include <string>
@@ -8,6 +9,14 @@ module;
 module mal;
 
 using namespace mal;
+
+std::optional<std::string> mal::read_line() {
+  std::string line;
+  if (linenoise::Readline("user> ", line)) {
+    return std::nullopt;
+  }
+  return line;
+}
 
 struct Reader::Impl {
   std::vector<std::string> tokens;

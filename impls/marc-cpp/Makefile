@@ -9,7 +9,8 @@ LDFLAGS=-lstdc++
 MAINS=$(wildcard step*.cpp)
 TARGETS=$(MAINS:%.cpp=%)
 
-MAL_IMPLS=$(wildcard mal/*.cpp)
+MAL_HEADERS=$(wildcard mal/*.hpp mal/nodes/*.hpp)
+MAL_IMPLS=$(wildcard mal/*.cpp mal/nodes/*.cpp)
 MAL_OBJECTS=mal/mal.o $(MAL_IMPLS:%.cpp=%.o)
 
 all: $(TARGETS)
@@ -17,7 +18,7 @@ all: $(TARGETS)
 $(TARGETS): %: %.o $(MAL_OBJECTS)
 	$(LD) $^ -o $@ $(LDFLAGS)
 
-mal/mal.pcm: mal/mal.cppm mal/mal.hpp mal/linenoise.hpp
+mal/mal.pcm: mal/mal.cppm $(MAL_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) --precompile $< -o $@
 
 mal/mal.o: mal/mal.pcm
@@ -28,4 +29,4 @@ mal/mal.o: mal/mal.pcm
 	$(CXX) $(CXXFLAGS) -fmodule-file=mal=mal/mal.pcm -c $< -o $@
 
 clean:
-	rm -f *.o mal/*.o mal/*.pcm $(TARGETS)
+	rm -f *.o mal/*.o mal/*.pcm mal/nodes/*.o $(TARGETS)

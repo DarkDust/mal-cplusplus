@@ -1,0 +1,5 @@
+If:
+  PathMatch: mal/mal\.cppm
+
+Diagnostics:
+  UnusedIncludes: None
