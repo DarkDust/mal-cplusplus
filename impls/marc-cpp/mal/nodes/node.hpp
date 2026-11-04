@@ -1,16 +1,17 @@
 #pragma once
 
+#include "../location.hpp"
 #include "../nonnull_shared_ptr.hpp"
 #include <string>
 
 namespace mal {
 
   /**
-   * Virtual parent class for AST nodes.
+   * Parent class for AST nodes.
    */
   class Node {
   public:
-    Node() = default;
+    explicit Node(const ConstLocationRangePtr &location);
     virtual ~Node() = 0;
 
     // Disallow copy and move.
@@ -21,6 +22,15 @@ namespace mal {
 
     /** Generate a string representation of the node. */
     [[nodiscard]] virtual std::string print() const = 0;
+
+    /** Get the node's location range in the source. */
+    [[nodiscard]] const ConstLocationRangePtr &get_location() const;
+
+    /** Set the node's location range in the source. */
+    void set_location(const ConstLocationRangePtr &location);
+
+  private:
+    ConstLocationRangePtr location;
   };
 
   /**
@@ -28,6 +38,8 @@ namespace mal {
    */
   class Hashable : public Node {
   public:
+    explicit Hashable(const ConstLocationRangePtr &location) : Node(location) {}
+
     [[nodiscard]] virtual std::size_t hash() const = 0;
     [[nodiscard]] virtual bool equals(const Hashable &other) const = 0;
   };

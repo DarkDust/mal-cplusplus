@@ -10,7 +10,7 @@ namespace mal {
   class HashMap : public Node {
   public:
     /** Initialize an empty hash map. */
-    HashMap();
+    HashMap(const ConstLocationRangePtr &location);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

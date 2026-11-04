@@ -1,6 +1,5 @@
 module;
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -8,10 +7,12 @@ module mal;
 
 using namespace mal;
 
-List::List(Kind kind) : nodes{}, kind(kind) {}
+List::List(const ConstLocationRangePtr &location, Kind kind)
+    : Node(location), nodes{}, kind(kind) {}
 
-List::List(Kind kind, const std::vector<ConstNodePtr> &nodes)
-    : nodes(nodes), kind(kind) {}
+List::List(const ConstLocationRangePtr &location, Kind kind,
+           const std::vector<ConstNodePtr> &nodes)
+    : Node(location), nodes(nodes), kind(kind) {}
 
 std::string List::print() const {
   std::string opening = kind == Kind::List ? "(" : "[";

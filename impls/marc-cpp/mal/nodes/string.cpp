@@ -35,7 +35,8 @@ static std::string escape(const std::string &str) {
   return output;
 }
 
-static std::string unescape(const std::string &str) {
+static std::string unescape(const std::string &str,
+                            const ConstLocationRangePtr &location) {
   std::string output;
 
   bool expecting_code = false;
@@ -58,7 +59,8 @@ static std::string unescape(const std::string &str) {
         output += '\t';
         break;
       default:
-        throw ParseError("unsupport escape sequence");
+        // TODO: Calculate exact position.
+        throw ParseError(location, "unsupport escape sequence");
       }
       expecting_code = false;
 
@@ -71,18 +73,19 @@ static std::string unescape(const std::string &str) {
   }
 
   if (expecting_code) {
-    throw ParseError("unbalanced escape character in string");
+    throw ParseError(location, "unbalanced escape character in string");
   }
 
   return output;
 }
 
-String::String(const std::string &str) {
+String::String(const ConstLocationRangePtr &location, const std::string &str)
+    : Hashable(location) {
   if (str.starts_with('"')) {
     if (!str.ends_with('"') || str.length() == 1) {
-      throw ParseError("unbalanced string");
+      throw ParseError(location, "unbalanced string");
     }
-    this->str = unescape(str.substr(1, str.length() - 2));
+    this->str = unescape(str.substr(1, str.length() - 2), location);
   } else {
     // Assume raw, unescaped string.
     this->str = str;

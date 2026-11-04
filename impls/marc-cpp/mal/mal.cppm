@@ -17,6 +17,7 @@ export module mal;
 
 export {
 #include "environment.hpp"
+#include "location.hpp"
 #include "nodes/future.hpp"
 #include "nodes/hash_map.hpp"
 #include "nodes/keyword.hpp"

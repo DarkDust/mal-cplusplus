@@ -9,7 +9,7 @@ namespace mal {
   class String : public Hashable {
   public:
     /** Initialize with a string value. */
-    explicit String(const std::string &str);
+    String(const ConstLocationRangePtr &location, const std::string &str);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "location.hpp"
 #include <stdexcept>
 #include <string>
 
@@ -9,11 +10,12 @@ namespace mal {
    */
   class RuntimeError : public std::runtime_error {
   public:
-    explicit RuntimeError(const std::string &message, int line = -1,
-                          int line_pos = -1);
+    RuntimeError(const ConstLocationRangePtr &location,
+                 const std::string &message);
+
+    [[nodiscard]] std::string print() const;
 
   private:
-    int line;
-    int line_pos;
+    ConstLocationRangePtr location;
   };
 } // namespace mal

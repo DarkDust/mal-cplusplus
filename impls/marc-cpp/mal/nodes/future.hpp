@@ -11,12 +11,13 @@ namespace mal {
   public:
     /** Initialize a future.
 
+    @param range Source location range of the node.
     @param prefix String to print before the "contained" node representation.
     @param suffix String to print after the "contained" node representation.
     @param contained Node to wrap.
     */
-    Future(std::string prefix, std::string suffix,
-           const ConstNodePtr &contained);
+    Future(const ConstLocationRangePtr &range, std::string prefix,
+           std::string suffix, const ConstNodePtr &contained);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

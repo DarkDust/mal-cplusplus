@@ -10,8 +10,10 @@ namespace mal {
    */
   class BuiltinLambda : public Node {
   public:
-    /** Evaluate the lambda using the given arguments.
+    explicit BuiltinLambda(const ConstLocationRangePtr &location)
+        : Node(location) {};
 
+    /** Evaluate the lambda using the given arguments.
     @param args Argument list for the lambda.
     @returns A non-null node.
     @throws RuntimeError if the argument list has the wrong length or invalid

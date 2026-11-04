@@ -9,7 +9,8 @@ namespace mal {
   class Keyword : public Hashable {
   public:
     /** Initialize with an explicit keyword name. */
-    explicit Keyword(const std::string &str);
+    explicit Keyword(const ConstLocationRangePtr &location,
+                     const std::string &str);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

@@ -9,9 +9,9 @@ namespace mal {
   class Number : public Node {
   public:
     /** Initialize with a string representation. */
-    explicit Number(const std::string &str);
+    Number(const ConstLocationRangePtr &location, const std::string &str);
     /** Initialize with a number. */
-    explicit Number(const int num);
+    Number(const ConstLocationRangePtr &location, const int num);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

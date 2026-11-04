@@ -9,7 +9,7 @@ namespace mal {
   class Symbol : public Node {
   public:
     /** Initialize with an explicit symbol name. */
-    explicit Symbol(std::string str);
+    Symbol(const ConstLocationRangePtr &location, std::string str);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

@@ -10,27 +10,32 @@ using namespace mal;
 
 class BuiltinLambdaArithmetic : public BuiltinLambda {
 public:
-  using Operation = std::function<int(int, int)>;
+  using Operation =
+      std::function<int(int, int, const ConstNodePtr &, const ConstNodePtr &)>;
 
-  BuiltinLambdaArithmetic(std::string name, Operation op)
-      : name(std::move(name)), op(std::move(op)) {};
+  BuiltinLambdaArithmetic(const ConstLocationRangePtr &location,
+                          std::string name, Operation op)
+      : BuiltinLambda(location), name(std::move(name)), op(std::move(op)) {};
 
   [[nodiscard]] ConstNodePtr
   eval(std::vector<ConstNodePtr> args) const override {
     if (args.size() != 2) {
-      throw RuntimeError("invalid number of arguments");
+      throw RuntimeError(this->get_location(), "invalid number of arguments");
     }
 
     auto a = args.at(0).cast<const Number>();
     auto b = args.at(1).cast<const Number>();
-    // auto a = dynamic_pointer_cast<const Number>(args.at(0));
-    // auto b = dynamic_pointer_cast<const Number>(args.at(1));
-    if (!a || !b) {
-      throw RuntimeError("argument is not a number");
+    if (!a) {
+      throw RuntimeError(args.at(0)->get_location(),
+                         "argument is not a number");
+    }
+    if (!b) {
+      throw RuntimeError(args.at(1)->get_location(),
+                         "argument is not a number");
     }
 
-    int result = this->op((*a)->get_number(), (*b)->get_number());
-    return make_nonnull_shared<Number>(result);
+    int result = this->op((*a)->get_number(), (*b)->get_number(), *a, *b);
+    return make_nonnull_shared<Number>(LocationRange::create_virtual(), result);
   }
 
   [[nodiscard]] std::string print() const override { return this->name; }
@@ -63,19 +68,23 @@ void Environment::remove(const std::string &key) { this->map.erase(key); }
 void Environment::populate_with_default() {
   auto add = [this](const std::string &name,
                     BuiltinLambdaArithmetic::Operation op) {
-    auto func =
-        make_nonnull_shared<BuiltinLambdaArithmetic>(name, std::move(op));
+    auto func = make_nonnull_shared<BuiltinLambdaArithmetic>(
+        LocationRange::create_virtual(), name, std::move(op));
     this->set(name, func);
   };
 
-  add("+", std::plus<int>{});
-  add("-", std::minus<int>{});
-  add("*", std::multiplies<int>{});
-  add("/", [](int a, int b) {
-    if (b == 0) {
-      throw RuntimeError("division by zero");
-    }
+  add("+", [](int a, int b, const ConstNodePtr &node_a,
+              const ConstNodePtr &node_b) { return a + b; });
+  add("-", [](int a, int b, const ConstNodePtr &node_a,
+              const ConstNodePtr &node_b) { return a - b; });
+  add("*", [](int a, int b, const ConstNodePtr &node_a,
+              const ConstNodePtr &node_b) { return a * b; });
+  add("/",
+      [](int a, int b, const ConstNodePtr &node_a, const ConstNodePtr &node_b) {
+        if (b == 0) {
+          throw RuntimeError(node_b->get_location(), "division by zero");
+        }
 
-    return a / b;
-  });
+        return a / b;
+      });
 }

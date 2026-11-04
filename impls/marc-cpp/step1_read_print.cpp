@@ -2,8 +2,10 @@
 #include <string>
 import mal;
 
-std::optional<mal::ConstNodePtr> read(const std::string &line) {
-  auto reader = mal::Reader(line);
+std::optional<mal::ConstNodePtr>
+read(const mal::NonNullSharedPtr<mal::Location::File> &file, int line_number,
+     const std::string &line) {
+  auto reader = mal::Reader(file, line_number, line);
   auto result = reader.read_form();
   return result;
 }
@@ -20,14 +22,15 @@ std::string print(const std::optional<mal::ConstNodePtr> &node) {
   return (*node)->print();
 }
 
-bool rep() {
+bool rep(const mal::NonNullSharedPtr<mal::Location::File> &file,
+         int line_number) {
   auto line = mal::read_line();
   if (!line) {
     return false;
   }
 
   try {
-    auto intermediate_read = read(*line);
+    auto intermediate_read = read(file, line_number, *line);
     auto intermediate_eval = eval(intermediate_read);
     auto intermediate_print = print(intermediate_eval);
     std::cout << intermediate_print << std::endl;
@@ -39,7 +42,11 @@ bool rep() {
 
 int main(int argc, char **argv) {
   try {
-    while (rep()) {
+
+    auto file = mal::make_nonnull_shared<mal::Location::File>("<stdin>");
+    int line_number = 1;
+
+    while (rep(file, line_number++)) {
     }
     return EXIT_SUCCESS;
   } catch (const std::exception &error) {

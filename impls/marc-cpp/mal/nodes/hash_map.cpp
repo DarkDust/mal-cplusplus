@@ -6,7 +6,8 @@ module mal;
 
 using namespace mal;
 
-HashMap::HashMap() : map{} {}
+HashMap::HashMap(const ConstLocationRangePtr &location)
+    : Node(location), map{} {}
 
 void HashMap::set(const std::shared_ptr<const Hashable> &key,
                   const ConstNodePtr &val) {

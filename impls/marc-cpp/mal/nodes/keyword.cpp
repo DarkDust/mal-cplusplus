@@ -6,7 +6,8 @@ module mal;
 
 using namespace mal;
 
-Keyword::Keyword(const std::string &str) {
+Keyword::Keyword(const ConstLocationRangePtr &location, const std::string &str)
+    : Hashable(location) {
   if (str.starts_with(':')) {
     this->keyword = str.substr(1);
   } else {

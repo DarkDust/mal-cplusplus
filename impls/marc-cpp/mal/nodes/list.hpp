@@ -14,13 +14,15 @@ namespace mal {
     enum class Kind : std::uint8_t { List, Vector };
 
     /** Initialize with a kind and empty nodes list. */
-    explicit List(Kind kind);
-    /** Initialize with a kind and a given nodes list.
+    List(const ConstLocationRangePtr &location, Kind kind);
 
+    /** Initialize with a kind and a given nodes list.
+    @param range Source location range of the node.
     @param kind Whether the node represents a list or vector.
     @param nodes List of nodes.
      */
-    List(Kind kind, const std::vector<ConstNodePtr> &nodes);
+    List(const ConstLocationRangePtr &location, Kind kind,
+         const std::vector<ConstNodePtr> &nodes);
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;

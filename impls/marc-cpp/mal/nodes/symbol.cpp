@@ -6,7 +6,8 @@ module mal;
 
 using namespace mal;
 
-Symbol::Symbol(std::string str) : sym(std::move(str)) {}
+Symbol::Symbol(const ConstLocationRangePtr &location, std::string str)
+    : Node(location), sym(std::move(str)) {}
 
 std::string Symbol::print() const { return this->sym; }
 

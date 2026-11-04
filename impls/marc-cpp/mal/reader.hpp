@@ -18,7 +18,8 @@ namespace mal {
   class Reader final {
   public:
     /** Initialize with a single line. */
-    explicit Reader(const std::string &line);
+    Reader(const NonNullSharedPtr<Location::File> &file, int line_number,
+           const std::string &line);
     ~Reader();
 
     // Disallow copy and move.

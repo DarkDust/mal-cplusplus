@@ -6,9 +6,11 @@ module mal;
 
 using namespace mal;
 
-Number::Number(const std::string &str) : num(std::stoi(str)) {}
+Number::Number(const ConstLocationRangePtr &location, const std::string &str)
+    : Node(location), num(std::stoi(str)) {}
 
-Number::Number(const int num) : num(num) {}
+Number::Number(const ConstLocationRangePtr &location, const int num)
+    : Node(location), num(num) {}
 
 std::string Number::print() const { return std::to_string(this->num); }
 

@@ -3,8 +3,10 @@
 #include <string>
 import mal;
 
-std::optional<mal::ConstNodePtr> read(const std::string &line) {
-  auto reader = mal::Reader(line);
+std::optional<mal::ConstNodePtr>
+read(const mal::NonNullSharedPtr<mal::Location::File> &file, int line_number,
+     const std::string &line) {
+  auto reader = mal::Reader(file, line_number, line);
   auto result = reader.read_form();
   return result;
 }
@@ -26,7 +28,7 @@ eval_list(mal::NonNullSharedPtr<const mal::List> &list,
   for (auto &node : nodes) {
     auto recursed = eval(node, env);
     if (!recursed) {
-      throw mal::RuntimeError("empty result from eval");
+      throw mal::RuntimeError(node->get_location(), "empty result from eval");
     }
 
     evaluated.push_back(*recursed);
@@ -37,7 +39,8 @@ eval_list(mal::NonNullSharedPtr<const mal::List> &list,
     evaluated.erase(evaluated.begin());
     return (*func)->eval(evaluated);
   } else {
-    return mal::make_nonnull_shared<mal::List>(list->get_kind(), evaluated);
+    return mal::make_nonnull_shared<mal::List>(list->get_location(),
+                                               list->get_kind(), evaluated);
   }
 }
 
@@ -45,12 +48,13 @@ std::optional<mal::ConstNodePtr>
 eval_hash_map(mal::NonNullSharedPtr<const mal::HashMap> &map,
               mal::EnvironmentPtr &env) {
 
-  auto result = mal::make_nonnull_shared<mal::HashMap>();
+  auto result = mal::make_nonnull_shared<mal::HashMap>(map->get_location());
 
   for (auto &[key, value] : *map) {
     auto evaluated = eval(value, env);
     if (!evaluated) {
-      throw mal::RuntimeError("failed to evaluate hash map value");
+      throw mal::RuntimeError(value->get_location(),
+                              "failed to evaluate hash map value");
     }
 
     result->set(key, *evaluated);
@@ -91,29 +95,35 @@ std::string print(const std::optional<mal::ConstNodePtr> &node) {
   return (*node)->print();
 }
 
-bool rep(mal::EnvironmentPtr &env) {
+bool rep(const mal::NonNullSharedPtr<mal::Location::File> &file,
+         int line_number, mal::EnvironmentPtr &env) {
   auto line = mal::read_line();
   if (!line) {
     return false;
   }
 
   try {
-    auto intermediate_read = read(*line);
+    auto intermediate_read = read(file, line_number, *line);
     auto intermediate_eval = eval(intermediate_read, env);
     auto intermediate_print = print(intermediate_eval);
     std::cout << intermediate_print << std::endl;
   } catch (mal::ParseError error) {
-    std::cerr << error.what() << std::endl;
+    std::cerr << error.print() << std::endl;
+  } catch (mal::RuntimeError error) {
+    std::cerr << error.print() << std::endl;
   }
   return true;
 }
 
 int main(int argc, char **argv) {
   try {
+    auto file = mal::make_nonnull_shared<mal::Location::File>("<stdin>");
+    int line_number = 1;
+
     auto env = mal::make_nonnull_shared<mal::Environment>();
     env->populate_with_default();
 
-    while (rep(env)) {
+    while (rep(file, line_number++, env)) {
     }
     return EXIT_SUCCESS;
   } catch (const std::exception &error) {
