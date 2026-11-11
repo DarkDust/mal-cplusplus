@@ -24,6 +24,10 @@ namespace mal {
     List(const ConstLocationRangePtr &location, Kind kind,
          const std::vector<ConstNodePtr> &nodes);
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] bool
+    equals(const NonNullSharedPtr<const Node> &other) const override;
+
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;
 

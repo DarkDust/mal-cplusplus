@@ -12,6 +12,10 @@ namespace mal {
     /** Initialize an empty hash map. */
     explicit HashMap(const ConstLocationRangePtr &location);
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] bool
+    equals(const NonNullSharedPtr<const Node> &other) const override;
+
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;
 

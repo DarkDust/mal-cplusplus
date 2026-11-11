@@ -28,6 +28,10 @@ namespace mal {
     eval(const ConstNodePtr &parent,
          const std::vector<ConstNodePtr> &args) const;
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] bool
+    equals(const NonNullSharedPtr<const Node> &other) const override;
+
     [[nodiscard]] std::string print() const override;
 
   private:

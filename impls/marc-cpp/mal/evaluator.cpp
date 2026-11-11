@@ -15,6 +15,10 @@ constexpr static const std::string gDebugEval = "DEBUG-EVAL";
 static ConstNodePtr special_def_bang(const Evaluator &evaluator,
                                      const std::vector<ConstNodePtr> &nodes,
                                      const EnvironmentPtr &env) {
+  if (nodes.size() < 2) {
+    throw RuntimeError(nodes.at(0)->get_location(),
+                       "wrong number of arguments");
+  }
   auto key = nodes.at(1).cast<const Symbol>();
   if (!key) {
     throw RuntimeError(nodes.at(1)->get_location(),
@@ -29,6 +33,10 @@ static ConstNodePtr special_def_bang(const Evaluator &evaluator,
 static ConstNodePtr special_let_star(const Evaluator &evaluator,
                                      const std::vector<ConstNodePtr> &nodes,
                                      const EnvironmentPtr &env) {
+  if (nodes.size() < 2) {
+    throw RuntimeError(nodes.at(0)->get_location(),
+                       "wrong number of arguments");
+  }
   auto sub_env = make_nonnull_shared<Environment>(env);
   auto list = nodes.at(1).cast<const List>();
   if (!list) {
@@ -59,9 +67,29 @@ static ConstNodePtr special_let_star(const Evaluator &evaluator,
   return evaluator.eval(nodes.at(2), sub_env);
 }
 
+static ConstNodePtr special_if(const Evaluator &evaluator,
+                               const std::vector<ConstNodePtr> &nodes,
+                               const EnvironmentPtr &env) {
+  if (nodes.size() < 3) {
+    throw RuntimeError(nodes.at(0)->get_location(),
+                       "wrong number of arguments");
+  }
+  const auto &condition = nodes.at(1);
+  if (evaluator.eval(condition, env)->is_trueish()) {
+    return evaluator.eval(nodes.at(2), env);
+  }
+
+  if (nodes.size() < 4) {
+    return make_nonnull_shared<Nil>(nodes.at(0)->get_location());
+  }
+
+  return evaluator.eval(nodes.at(3), env);
+}
+
 Evaluator::Evaluator() : special_map{} {
   special_map["def!"] = special_def_bang;
   special_map["let*"] = special_let_star;
+  special_map["if"] = special_if;
 }
 
 std::optional<ConstNodePtr>

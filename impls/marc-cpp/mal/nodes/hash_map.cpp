@@ -14,6 +14,11 @@ void HashMap::set(const NonNullSharedPtr<const Hashable> &key,
   this->map.emplace(key, val);
 }
 
+bool HashMap::equals(const NonNullSharedPtr<const Node> &maybe_other) const {
+  // TODO: Implement me.
+  return false;
+};
+
 std::string HashMap::print() const {
   std::string output = "{";
 

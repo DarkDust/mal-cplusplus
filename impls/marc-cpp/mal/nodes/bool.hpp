@@ -18,6 +18,10 @@ namespace mal {
     /** Whether the node does not represent `false` or `nil`. */
     [[nodiscard]] bool is_trueish() const override;
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] bool
+    equals(const NonNullSharedPtr<const Node> &other) const override;
+
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;
 

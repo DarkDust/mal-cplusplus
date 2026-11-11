@@ -1,5 +1,6 @@
 module;
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,17 @@ List::List(const ConstLocationRangePtr &location, Kind kind)
 List::List(const ConstLocationRangePtr &location, Kind kind,
            const std::vector<ConstNodePtr> &nodes)
     : Node(location), nodes(nodes), kind(kind) {}
+
+bool List::equals(const NonNullSharedPtr<const Node> &maybe_other) const {
+  const auto &other = maybe_other.cast<const List>();
+  if (!other) {
+    return false;
+  }
+
+  return std::ranges::equal(
+      this->nodes, (*other)->nodes,
+      [](const auto &my, const auto &other) { return my->equals(other); });
+};
 
 std::string List::print() const {
   std::string opening = kind == Kind::List ? "(" : "[";

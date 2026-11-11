@@ -32,6 +32,10 @@ namespace mal {
     /** Whether the node does not represent `false` or `nil`. */
     [[nodiscard]] virtual bool is_trueish() const;
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] virtual bool
+    equals(const NonNullSharedPtr<const Node> &other) const = 0;
+
   private:
     ConstLocationRangePtr location;
   };

@@ -14,6 +14,10 @@ namespace mal {
     */
     explicit Nil(const ConstLocationRangePtr &range);
 
+    /** Whether the receiver and argument node are considered equal. */
+    [[nodiscard]] bool
+    equals(const NonNullSharedPtr<const Node> &other) const override;
+
     /** Whether the node does not represent `false` or `nil`. */
     [[nodiscard]] bool is_trueish() const override;
 

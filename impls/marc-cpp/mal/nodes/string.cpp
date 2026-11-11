@@ -92,4 +92,13 @@ String::String(const ConstLocationRangePtr &location, const std::string &str)
   }
 }
 
+bool String::equals(const NonNullSharedPtr<const Node> &maybe_other) const {
+  auto other = maybe_other.cast<const String>();
+  if (!other) {
+    return false;
+  }
+
+  return (*other)->str == this->str;
+};
+
 std::string String::print() const { return "\"" + escape(this->str) + "\""; }
