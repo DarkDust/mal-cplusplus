@@ -1,0 +1,156 @@
+module;
+
+#include <format>
+#include <iostream>
+#include <optional>
+#include <string>
+
+module mal;
+
+using namespace mal;
+
+// String constant: "DEBUG-EVAL"
+static const std::string gDebugEval = "DEBUG-EVAL";
+
+std::optional<ConstNodePtr>
+Evaluator::eval_specials(const std::string &symbol_value,
+                         const std::vector<ConstNodePtr> &nodes,
+                         const EnvironmentPtr &env) const {
+  if (symbol_value == "def!") {
+    auto key = nodes.at(1).cast<const Symbol>();
+    if (!key) {
+      throw RuntimeError(nodes.at(1)->get_location(),
+                         "first argument to `def!` is not a symbol");
+    }
+
+    auto value = this->eval(nodes.at(2), env);
+    env->set((*key)->get_symbol(), value);
+    return value;
+  }
+
+  if (symbol_value == "let*") {
+    auto sub_env = make_nonnull_shared<Environment>(env);
+    auto list = nodes.at(1).cast<const List>();
+    if (!list) {
+      throw RuntimeError(nodes.at(1)->get_location(),
+                         "first argument to `let*` is not a list");
+    }
+    auto let_nodes = (*list)->get_nodes();
+    if (let_nodes.size() % 2 != 0) {
+      throw RuntimeError((*list)->get_location(),
+                         "uneven list in argument to `let*`");
+    }
+
+    auto it = let_nodes.begin();
+    auto end = let_nodes.end();
+    while (it != end) {
+      auto maybe_key = *it++;
+      auto value = *it++;
+
+      auto key = maybe_key.cast<const Symbol>();
+      if (!key) {
+        throw RuntimeError(maybe_key->get_location(),
+                           "key is not a symbol in `let*`");
+      }
+      auto evaluated_value = eval(value, sub_env);
+      sub_env->set((*key)->get_symbol(), evaluated_value);
+    }
+
+    return eval(nodes.at(2), sub_env);
+  }
+
+  return std::nullopt;
+}
+
+ConstNodePtr Evaluator::eval_list(const NonNullSharedPtr<const List> &list,
+                                  const EnvironmentPtr &env) const {
+  auto &nodes = list->get_nodes();
+  if (nodes.empty()) {
+    return list;
+  }
+
+  std::vector<ConstNodePtr> evaluated;
+  evaluated.reserve(nodes.size());
+
+  if (nodes.size() >= 3) {
+    auto symbol = nodes.at(0).cast<const Symbol>();
+    if (symbol) {
+      auto symbol_value = (*symbol)->get_symbol();
+      auto evaluated = this->eval_specials(symbol_value, nodes, env);
+      if (evaluated) {
+        return *evaluated;
+      }
+    }
+  }
+
+  for (auto &node : nodes) {
+    evaluated.push_back(this->eval(node, env));
+  }
+
+  auto first_evaluated = evaluated.at(0);
+  auto func = first_evaluated.cast<const BuiltinLambda>();
+  if (func && list->get_kind() == List::Kind::List) {
+    evaluated.erase(evaluated.begin());
+    return (*func)->eval(evaluated);
+  } else {
+    throw RuntimeError(first_evaluated->get_location(),
+                       std::format("'{}' not found", first_evaluated->print()));
+  }
+}
+
+ConstNodePtr Evaluator::eval_vector(const NonNullSharedPtr<const List> &list,
+                                    const EnvironmentPtr &env) const {
+  auto &nodes = list->get_nodes();
+  std::vector<ConstNodePtr> evaluated;
+  evaluated.reserve(nodes.size());
+
+  for (auto &node : nodes) {
+    evaluated.push_back(this->eval(node, env));
+  }
+
+  return make_nonnull_shared<List>(list->get_location(), List::Kind::Vector,
+                                   evaluated);
+}
+
+ConstNodePtr
+Evaluator::eval_hash_map(const NonNullSharedPtr<const HashMap> &map,
+                         const EnvironmentPtr &env) const {
+  auto result = make_nonnull_shared<HashMap>(map->get_location());
+
+  for (auto &[key, value] : *map) {
+    result->set(key, this->eval(value, env));
+  }
+
+  return result;
+}
+
+ConstNodePtr Evaluator::eval(const ConstNodePtr &node,
+                             const EnvironmentPtr &env) const {
+  auto debug = env->get(gDebugEval);
+  if (debug && (*debug)->is_trueish()) {
+    std::cout << "EVAL: " << node->print() << std::endl;
+  }
+
+  auto symbol = node.cast<const Symbol>();
+  if (symbol) {
+    auto result = env->get((*symbol)->get_symbol());
+    return result ? *result : *symbol;
+  }
+
+  auto list = node.cast<const List>();
+  if (list) {
+    switch ((*list)->get_kind()) {
+    case List::Kind::List:
+      return eval_list(*list, env);
+    case List::Kind::Vector:
+      return eval_vector(*list, env);
+    }
+  }
+
+  auto map = node.cast<const HashMap>();
+  if (map) {
+    return eval_hash_map(*map, env);
+  }
+
+  return node;
+}

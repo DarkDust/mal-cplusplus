@@ -17,6 +17,7 @@ export module mal;
 
 export {
 #include "environment.hpp"
+#include "evaluator.hpp"
 #include "location.hpp"
 #include "nodes/bool.hpp"
 #include "nodes/future.hpp"
