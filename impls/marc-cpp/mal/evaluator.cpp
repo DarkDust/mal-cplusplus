@@ -12,51 +12,66 @@ using namespace mal;
 // String constant: "DEBUG-EVAL"
 constexpr static const std::string gDebugEval = "DEBUG-EVAL";
 
+static ConstNodePtr special_def_bang(const Evaluator &evaluator,
+                                     const std::vector<ConstNodePtr> &nodes,
+                                     const EnvironmentPtr &env) {
+  auto key = nodes.at(1).cast<const Symbol>();
+  if (!key) {
+    throw RuntimeError(nodes.at(1)->get_location(),
+                       "first argument to `def!` is not a symbol");
+  }
+
+  auto value = evaluator.eval(nodes.at(2), env);
+  env->set((*key)->get_symbol(), value);
+  return value;
+}
+
+static ConstNodePtr special_let_star(const Evaluator &evaluator,
+                                     const std::vector<ConstNodePtr> &nodes,
+                                     const EnvironmentPtr &env) {
+  auto sub_env = make_nonnull_shared<Environment>(env);
+  auto list = nodes.at(1).cast<const List>();
+  if (!list) {
+    throw RuntimeError(nodes.at(1)->get_location(),
+                       "first argument to `let*` is not a list");
+  }
+  auto let_nodes = (*list)->get_nodes();
+  if (let_nodes.size() % 2 != 0) {
+    throw RuntimeError((*list)->get_location(),
+                       "uneven list in argument to `let*`");
+  }
+
+  auto it = let_nodes.begin();
+  auto end = let_nodes.end();
+  while (it != end) {
+    auto maybe_key = *it++;
+    auto value = *it++;
+
+    auto key = maybe_key.cast<const Symbol>();
+    if (!key) {
+      throw RuntimeError(maybe_key->get_location(),
+                         "key is not a symbol in `let*`");
+    }
+    auto evaluated_value = evaluator.eval(value, sub_env);
+    sub_env->set((*key)->get_symbol(), evaluated_value);
+  }
+
+  return evaluator.eval(nodes.at(2), sub_env);
+}
+
+Evaluator::Evaluator() : special_map{} {
+  special_map["def!"] = special_def_bang;
+  special_map["let*"] = special_let_star;
+}
+
 std::optional<ConstNodePtr>
 Evaluator::eval_specials(const std::string &symbol_value,
                          const std::vector<ConstNodePtr> &nodes,
                          const EnvironmentPtr &env) const {
-  if (symbol_value == "def!") {
-    auto key = nodes.at(1).cast<const Symbol>();
-    if (!key) {
-      throw RuntimeError(nodes.at(1)->get_location(),
-                         "first argument to `def!` is not a symbol");
-    }
 
-    auto value = this->eval(nodes.at(2), env);
-    env->set((*key)->get_symbol(), value);
-    return value;
-  }
-
-  if (symbol_value == "let*") {
-    auto sub_env = make_nonnull_shared<Environment>(env);
-    auto list = nodes.at(1).cast<const List>();
-    if (!list) {
-      throw RuntimeError(nodes.at(1)->get_location(),
-                         "first argument to `let*` is not a list");
-    }
-    auto let_nodes = (*list)->get_nodes();
-    if (let_nodes.size() % 2 != 0) {
-      throw RuntimeError((*list)->get_location(),
-                         "uneven list in argument to `let*`");
-    }
-
-    auto it = let_nodes.begin();
-    auto end = let_nodes.end();
-    while (it != end) {
-      auto maybe_key = *it++;
-      auto value = *it++;
-
-      auto key = maybe_key.cast<const Symbol>();
-      if (!key) {
-        throw RuntimeError(maybe_key->get_location(),
-                           "key is not a symbol in `let*`");
-      }
-      auto evaluated_value = eval(value, sub_env);
-      sub_env->set((*key)->get_symbol(), evaluated_value);
-    }
-
-    return eval(nodes.at(2), sub_env);
+  auto func = this->special_map.find(symbol_value);
+  if (func != this->special_map.end()) {
+    return func->second(*this, nodes, env);
   }
 
   return std::nullopt;
@@ -91,7 +106,7 @@ ConstNodePtr Evaluator::eval_list(const NonNullSharedPtr<const List> &list,
   auto func = first_evaluated.cast<const BuiltinLambda>();
   if (func && list->get_kind() == List::Kind::List) {
     evaluated.erase(evaluated.begin());
-    return (*func)->eval(evaluated);
+    return (*func)->eval(list, evaluated);
   } else {
     throw RuntimeError(first_evaluated->get_location(),
                        std::format("'{}' not found", first_evaluated->print()));

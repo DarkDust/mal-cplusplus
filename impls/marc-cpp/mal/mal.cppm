@@ -20,6 +20,7 @@ export {
 #include "evaluator.hpp"
 #include "location.hpp"
 #include "nodes/bool.hpp"
+#include "nodes/builtin_lambda.hpp"
 #include "nodes/future.hpp"
 #include "nodes/hash_map.hpp"
 #include "nodes/keyword.hpp"

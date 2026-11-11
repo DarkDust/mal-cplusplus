@@ -4,12 +4,14 @@
 #include "nodes/hash_map.hpp"
 #include "nodes/list.hpp"
 #include "nodes/node.hpp"
+#include <functional>
 #include <optional>
+#include <unordered_map>
 
 namespace mal {
   class Evaluator {
   public:
-    Evaluator() = default;
+    Evaluator();
 
     /** Evalate a node.
      * @param node Node to evaluate.
@@ -21,6 +23,11 @@ namespace mal {
                                     const EnvironmentPtr &env) const;
 
   private:
+    using Special = std::function<ConstNodePtr(
+        const Evaluator &evaluator, const std::vector<ConstNodePtr> &nodes,
+        const EnvironmentPtr &env)>;
+    std::unordered_map<std::string, Special> special_map;
+
     [[nodiscard]] std::optional<ConstNodePtr>
     eval_specials(const std::string &symbol_value,
                   const std::vector<ConstNodePtr> &nodes,

@@ -1,6 +1,6 @@
 {
     "C_Cpp.intelliSenseEngine": "disabled",
-    "clangd.path": "/usr/bin/clangd",
+    "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd",
     "clangd.arguments": [
         "--experimental-modules-support",
         "--header-insertion=never"

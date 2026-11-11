@@ -8,19 +8,14 @@ module mal;
 
 using namespace mal;
 
-class BuiltinLambdaArithmetic : public BuiltinLambda {
-public:
-  using Operation =
-      std::function<int(int, int, const ConstNodePtr &, const ConstNodePtr &)>;
+using ArithmeticOperation =
+    std::function<int(int, int, const ConstNodePtr &, const ConstNodePtr &)>;
 
-  BuiltinLambdaArithmetic(const ConstLocationRangePtr &location,
-                          std::string name, Operation op)
-      : BuiltinLambda(location), name(std::move(name)), op(std::move(op)) {};
-
-  [[nodiscard]] ConstNodePtr
-  eval(std::vector<ConstNodePtr> args) const override {
+static BuiltinLambda::Func wrap_arithmetic(const ArithmeticOperation &op) {
+  return [op](const ConstNodePtr &parent,
+              const std::vector<ConstNodePtr> &args) {
     if (args.size() != 2) {
-      throw RuntimeError(this->get_location(), "invalid number of arguments");
+      throw RuntimeError(parent->get_location(), "invalid number of arguments");
     }
 
     auto a = args.at(0).cast<const Number>();
@@ -34,15 +29,18 @@ public:
                          "argument is not a number");
     }
 
-    int result = this->op((*a)->get_number(), (*b)->get_number(), *a, *b);
+    int result = op((*a)->get_number(), (*b)->get_number(), *a, *b);
     return make_nonnull_shared<Number>(LocationRange::create_virtual(), result);
-  }
+  };
+}
 
-  [[nodiscard]] std::string print() const override { return this->name; }
+class BuiltinLambdaArithmetic : public BuiltinLambda {
+public:
+  using Operation =
+      std::function<int(int, int, const ConstNodePtr &, const ConstNodePtr &)>;
 
-private:
-  std::string name;
-  Operation op;
+  BuiltinLambdaArithmetic(std::string name, const Operation &op)
+      : BuiltinLambda(name, wrap_arithmetic(op)) {}
 };
 
 Environment::Environment(std::optional<NonNullSharedPtr<Environment>> parent)
@@ -66,25 +64,56 @@ void Environment::set(const std::string &key, ConstNodePtr val) {
 void Environment::remove(const std::string &key) { this->map.erase(key); }
 
 void Environment::populate_with_default() {
-  auto add = [this](const std::string &name,
-                    BuiltinLambdaArithmetic::Operation op) {
-    auto func = make_nonnull_shared<BuiltinLambdaArithmetic>(
-        LocationRange::create_virtual(), name, std::move(op));
-    this->set(name, func);
+  auto add = [this](const std::string &name, BuiltinLambda::Func func) {
+    auto lambda = make_nonnull_shared<BuiltinLambda>(name, std::move(func));
+    this->set(name, lambda);
   };
 
-  add("+", [](int a, int b, const ConstNodePtr &node_a,
-              const ConstNodePtr &node_b) { return a + b; });
-  add("-", [](int a, int b, const ConstNodePtr &node_a,
-              const ConstNodePtr &node_b) { return a - b; });
-  add("*", [](int a, int b, const ConstNodePtr &node_a,
-              const ConstNodePtr &node_b) { return a * b; });
-  add("/",
-      [](int a, int b, const ConstNodePtr &node_a, const ConstNodePtr &node_b) {
-        if (b == 0) {
-          throw RuntimeError(node_b->get_location(), "division by zero");
-        }
+  auto add_arithmetic = [this](const std::string &name,
+                               BuiltinLambdaArithmetic::Operation op) {
+    auto lambda =
+        make_nonnull_shared<BuiltinLambdaArithmetic>(name, std::move(op));
+    this->set(name, lambda);
+  };
 
-        return a / b;
+  add_arithmetic("+", [](int a, int b, const ConstNodePtr &node_a,
+                         const ConstNodePtr &node_b) { return a + b; });
+  add_arithmetic("-", [](int a, int b, const ConstNodePtr &node_a,
+                         const ConstNodePtr &node_b) { return a - b; });
+  add_arithmetic("*", [](int a, int b, const ConstNodePtr &node_a,
+                         const ConstNodePtr &node_b) { return a * b; });
+  add_arithmetic("/", [](int a, int b, const ConstNodePtr &node_a,
+                         const ConstNodePtr &node_b) {
+    if (b == 0) {
+      throw RuntimeError(node_b->get_location(), "division by zero");
+    }
+
+    return a / b;
+  });
+
+  add("list",
+      [](const ConstNodePtr &parent, const std::vector<ConstNodePtr> &args) {
+        return make_nonnull_shared<const List>(LocationRange::create_virtual(),
+                                               List::Kind::List, args);
       });
+
+  add("list?", [](const ConstNodePtr &parent,
+                  const std::vector<ConstNodePtr> &args) {
+    if (args.size() != 1) {
+      throw RuntimeError(parent->get_location(), "wrong number of arguments");
+    }
+
+    auto maybe_list = args.at(0).cast<const List>();
+    if (maybe_list) {
+      switch ((*maybe_list)->get_kind()) {
+      case List::Kind::List:
+        return make_nonnull_shared<const Bool>(parent->get_location(), true);
+
+      case List::Kind::Vector:
+        return make_nonnull_shared<const Bool>(parent->get_location(), false);
+      }
+    } else {
+      return make_nonnull_shared<const Bool>(parent->get_location(), false);
+    }
+  });
 }

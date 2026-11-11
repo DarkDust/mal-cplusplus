@@ -2,27 +2,8 @@
 
 #include "nodes/node.hpp"
 #include <unordered_map>
-#include <vector>
 
 namespace mal {
-  /**
-   * Base class for built-in functions.
-   */
-  class BuiltinLambda : public Node {
-  public:
-    explicit BuiltinLambda(const ConstLocationRangePtr &location)
-        : Node(location) {};
-
-    /** Evaluate the lambda using the given arguments.
-    @param args Argument list for the lambda.
-    @returns A non-null node.
-    @throws RuntimeError if the argument list has the wrong length or invalid
-    content.
-     */
-    [[nodiscard]] virtual ConstNodePtr
-    eval(std::vector<ConstNodePtr> args) const = 0;
-  };
-
   /**
    * An execution environment.
    */
