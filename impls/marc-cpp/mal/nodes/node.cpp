@@ -12,3 +12,5 @@ const ConstLocationRangePtr &Node::get_location() const {
 void Node::set_location(const ConstLocationRangePtr &location) {
   this->location = location;
 }
+
+bool Node::is_trueish() const { return true; }

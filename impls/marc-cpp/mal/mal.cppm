@@ -18,10 +18,12 @@ export module mal;
 export {
 #include "environment.hpp"
 #include "location.hpp"
+#include "nodes/bool.hpp"
 #include "nodes/future.hpp"
 #include "nodes/hash_map.hpp"
 #include "nodes/keyword.hpp"
 #include "nodes/list.hpp"
+#include "nodes/nil.hpp"
 #include "nodes/node.hpp"
 #include "nodes/number.hpp"
 #include "nodes/string.hpp"

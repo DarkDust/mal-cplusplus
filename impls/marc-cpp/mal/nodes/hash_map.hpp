@@ -20,7 +20,7 @@ namespace mal {
     @param key A symbol or keyword. Must not be null.
     @param value A value. Must not be null.
      */
-    void set(const std::shared_ptr<const Hashable> &key,
+    void set(const NonNullSharedPtr<const Hashable> &key,
              const ConstNodePtr &value);
 
     /** Begin-Iterator for the key/value pairs. */
@@ -30,19 +30,20 @@ namespace mal {
 
   private:
     struct KeyHash {
-      std::size_t operator()(const std::shared_ptr<const Hashable> &key) const {
+      std::size_t
+      operator()(const NonNullSharedPtr<const Hashable> &key) const {
         return key->hash();
       }
     };
 
     struct KeyEqual {
-      bool operator()(const std::shared_ptr<const Hashable> &a,
-                      const std::shared_ptr<const Hashable> &b) const {
+      bool operator()(const NonNullSharedPtr<const Hashable> &a,
+                      const NonNullSharedPtr<const Hashable> &b) const {
         return a->equals(*b);
       }
     };
 
-    std::unordered_map<std::shared_ptr<const Hashable>, ConstNodePtr, KeyHash,
+    std::unordered_map<NonNullSharedPtr<const Hashable>, ConstNodePtr, KeyHash,
                        KeyEqual>
         map;
   };

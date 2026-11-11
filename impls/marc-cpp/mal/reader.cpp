@@ -166,7 +166,7 @@ struct Reader::Impl {
                          "unbalanced hash map, missing value");
       }
 
-      map->set(key->shared(), *val);
+      map->set(*key, *val);
     }
 
     return map;
@@ -199,6 +199,15 @@ struct Reader::Impl {
 
     } else if (first_character == '"') {
       return make_nonnull_shared<String>(token->location, token->value);
+
+    } else if (token->value == "true") {
+      return make_nonnull_shared<Bool>(token->location, true);
+
+    } else if (token->value == "false") {
+      return make_nonnull_shared<Bool>(token->location, false);
+
+    } else if (token->value == "nil") {
+      return make_nonnull_shared<Nil>(token->location);
 
     } else {
       return make_nonnull_shared<Symbol>(token->location, token->value);

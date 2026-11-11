@@ -9,7 +9,7 @@ using namespace mal;
 HashMap::HashMap(const ConstLocationRangePtr &location)
     : Node(location), map{} {}
 
-void HashMap::set(const std::shared_ptr<const Hashable> &key,
+void HashMap::set(const NonNullSharedPtr<const Hashable> &key,
                   const ConstNodePtr &val) {
   this->map.emplace(key, val);
 }

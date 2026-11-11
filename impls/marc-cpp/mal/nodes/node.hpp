@@ -29,6 +29,9 @@ namespace mal {
     /** Set the node's location range in the source. */
     void set_location(const ConstLocationRangePtr &location);
 
+    /** Whether the node does not represent `false` or `nil`. */
+    [[nodiscard]] virtual bool is_trueish() const;
+
   private:
     ConstLocationRangePtr location;
   };

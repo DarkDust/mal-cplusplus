@@ -3,6 +3,9 @@
 #include <string>
 import mal;
 
+// String constant: "DEBUG-EVAL"
+static const std::string gDebugEval = "DEBUG-EVAL";
+
 std::optional<mal::ConstNodePtr>
 read(const mal::NonNullSharedPtr<mal::Location::File> &file, int line_number,
      const std::string &line) {
@@ -112,7 +115,7 @@ eval_list(mal::NonNullSharedPtr<const mal::List> &list,
   } else {
     throw mal::RuntimeError(
         first_evaluated->get_location(),
-        std::format("{} not found", first_evaluated->print()));
+        std::format("'{}' not found", first_evaluated->print()));
   }
 }
 
@@ -160,6 +163,11 @@ eval(const std::optional<mal::ConstNodePtr> &node, mal::EnvironmentPtr &env) {
 
   if (!node) {
     return std::nullopt;
+  }
+
+  auto debug = env->get(gDebugEval);
+  if (debug && (*debug)->is_trueish()) {
+    std::cout << "EVAL: " << (*node)->print() << std::endl;
   }
 
   auto symbol = node->cast<const mal::Symbol>();
