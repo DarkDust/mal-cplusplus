@@ -1,6 +1,7 @@
 module;
 
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <vector>
 
@@ -187,4 +188,25 @@ void Environment::populate_with_default() {
 
     return make_nonnull_shared<Number>(parent->get_location(), 0);
   });
+
+  add("prn", [](const auto &parent, const auto &args) {
+    if (args.size() != 1) {
+      throw RuntimeError(parent->get_location(), "wrong number of arguments");
+    }
+
+    std::cout << args.at(0)->print() << std::endl;
+
+    return make_nonnull_shared<Nil>(parent->get_location());
+  });
+}
+
+void Environment::dump() {
+  for (const auto &[key, value] : this->map) {
+    std::cout << "ENV: " << key << " = " << value->print() << std::endl;
+  }
+
+  if (this->parent) {
+    std::cout << "---" << std::endl;
+    (*this->parent)->dump();
+  }
 }

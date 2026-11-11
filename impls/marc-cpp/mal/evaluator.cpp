@@ -3,6 +3,7 @@ module;
 #include <format>
 #include <iostream>
 #include <optional>
+#include <ranges>
 #include <string>
 
 module mal;
@@ -86,10 +87,44 @@ static ConstNodePtr special_if(const Evaluator &evaluator,
   return evaluator.eval(nodes.at(3), env);
 }
 
+static ConstNodePtr special_fn_star(const Evaluator &evaluator,
+                                    const std::vector<ConstNodePtr> &nodes,
+                                    const EnvironmentPtr &env) {
+  if (nodes.size() < 3) {
+    throw RuntimeError(nodes.at(0)->get_location(),
+                       "wrong number of arguments");
+  }
+
+  const auto &binds = nodes.at(1).cast<const List>();
+  if (!binds) {
+    throw RuntimeError(nodes.at(1)->get_location(), "not a list");
+  }
+
+  const auto &expr = nodes.at(2);
+
+  return make_nonnull_shared<Lambda>(nodes.at(0)->get_location(),
+                                     (*binds)->get_nodes(), expr, env);
+}
+
+static ConstNodePtr special_do(const Evaluator &evaluator,
+                               const std::vector<ConstNodePtr> &nodes,
+                               const EnvironmentPtr &env) {
+
+  ConstNodePtr res = make_nonnull_shared<Nil>(LocationRange::create_virtual());
+
+  for (const auto &node : nodes | std::ranges::views::drop(1)) {
+    res = evaluator.eval(node, env);
+  }
+
+  return res;
+}
+
 Evaluator::Evaluator() : special_map{} {
   special_map["def!"] = special_def_bang;
   special_map["let*"] = special_let_star;
   special_map["if"] = special_if;
+  special_map["fn*"] = special_fn_star;
+  special_map["do"] = special_do;
 }
 
 std::optional<ConstNodePtr>
@@ -115,7 +150,7 @@ ConstNodePtr Evaluator::eval_list(const NonNullSharedPtr<const List> &list,
   std::vector<ConstNodePtr> evaluated;
   evaluated.reserve(nodes.size());
 
-  if (nodes.size() >= 3) {
+  if (nodes.size() >= 2) {
     auto symbol = nodes.at(0).cast<const Symbol>();
     if (symbol) {
       auto symbol_value = (*symbol)->get_symbol();
@@ -131,10 +166,14 @@ ConstNodePtr Evaluator::eval_list(const NonNullSharedPtr<const List> &list,
   }
 
   auto first_evaluated = evaluated.at(0);
-  auto func = first_evaluated.cast<const BuiltinLambda>();
-  if (func && list->get_kind() == List::Kind::List) {
+  if (auto builtin_lambda = first_evaluated.cast<const BuiltinLambda>()) {
     evaluated.erase(evaluated.begin());
-    return (*func)->eval(list, evaluated);
+    return (*builtin_lambda)->eval(list, evaluated);
+
+  } else if (auto lambda = first_evaluated.cast<const Lambda>()) {
+    evaluated.erase(evaluated.begin());
+    return (*lambda)->eval(evaluated, *this);
+
   } else {
     throw RuntimeError(first_evaluated->get_location(),
                        std::format("'{}' not found", first_evaluated->print()));
@@ -171,6 +210,7 @@ ConstNodePtr Evaluator::eval(const ConstNodePtr &node,
                              const EnvironmentPtr &env) const {
   auto debug = env->get(gDebugEval);
   if (debug && (*debug)->is_trueish()) {
+    env->dump();
     std::cout << "EVAL: " << node->print() << std::endl;
   }
 

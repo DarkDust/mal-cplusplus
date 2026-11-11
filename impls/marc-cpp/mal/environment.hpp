@@ -37,6 +37,9 @@ namespace mal {
     /** Add default built-in symbols. */
     void populate_with_default();
 
+    /** Print debug output. */
+    void dump();
+
   private:
     std::optional<NonNullSharedPtr<Environment>> parent;
     std::unordered_map<std::string, ConstNodePtr> map;

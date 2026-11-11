@@ -24,6 +24,7 @@ export {
 #include "nodes/future.hpp"
 #include "nodes/hash_map.hpp"
 #include "nodes/keyword.hpp"
+#include "nodes/lambda.hpp"
 #include "nodes/list.hpp"
 #include "nodes/nil.hpp"
 #include "nodes/node.hpp"
