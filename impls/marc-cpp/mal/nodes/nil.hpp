@@ -12,7 +12,7 @@ namespace mal {
 
     @param range Source location range of the node.
     */
-    Nil(const ConstLocationRangePtr &range);
+    explicit Nil(const ConstLocationRangePtr &range);
 
     /** Whether the node does not represent `false` or `nil`. */
     [[nodiscard]] bool is_trueish() const override;

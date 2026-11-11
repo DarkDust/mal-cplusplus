@@ -10,7 +10,7 @@ module mal;
 using namespace mal;
 
 // String constant: "DEBUG-EVAL"
-static const std::string gDebugEval = "DEBUG-EVAL";
+constexpr static const std::string gDebugEval = "DEBUG-EVAL";
 
 std::optional<ConstNodePtr>
 Evaluator::eval_specials(const std::string &symbol_value,
