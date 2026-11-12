@@ -46,6 +46,26 @@ std::string List::print() const {
   return result;
 }
 
+std::string List::print_verbatim() const {
+  std::string opening = kind == Kind::List ? "(" : "[";
+  std::string closing = kind == Kind::List ? ")" : "]";
+
+  std::string result = opening;
+
+  bool is_first = true;
+  for (auto &it : nodes) {
+    if (is_first) {
+      is_first = false;
+    } else {
+      result += ' ';
+    }
+    result += it->print_verbatim();
+  }
+
+  result += closing;
+  return result;
+}
+
 void List::append(const ConstNodePtr &node) { this->nodes.push_back(node); }
 
 const List::Kind List::get_kind() const { return this->kind; }

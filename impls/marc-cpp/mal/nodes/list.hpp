@@ -31,6 +31,9 @@ namespace mal {
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;
 
+    /** Generate a string from the node. */
+    [[nodiscard]] std::string print_verbatim() const override;
+
     /** Append a node to the list or vector.
 
     @param node Node to append.

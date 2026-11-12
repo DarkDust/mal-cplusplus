@@ -1,3 +1,7 @@
+module;
+
+#include <string>
+
 module mal;
 
 using namespace mal;
@@ -14,3 +18,5 @@ void Node::set_location(const ConstLocationRangePtr &location) {
 }
 
 bool Node::is_trueish() const { return true; }
+
+std::string Node::print_verbatim() const { return this->print(); }

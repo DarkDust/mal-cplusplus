@@ -8,7 +8,7 @@ namespace mal {
    */
   class Bool : public Node {
   public:
-    /** Initialize a future.
+    /** Initialize a Bool.
 
     @param range Source location range of the node.
     @param value The boolean value.

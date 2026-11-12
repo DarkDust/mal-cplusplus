@@ -79,9 +79,10 @@ static std::string unescape(const std::string &str,
   return output;
 }
 
-String::String(const ConstLocationRangePtr &location, const std::string &str)
+String::String(const ConstLocationRangePtr &location, const std::string &str,
+               bool do_unescape)
     : Hashable(location) {
-  if (str.starts_with('"')) {
+  if (str.starts_with('"') && do_unescape) {
     if (!str.ends_with('"') || str.length() == 1) {
       throw ParseError(location, "unbalanced string");
     }
@@ -102,3 +103,5 @@ bool String::equals(const NonNullSharedPtr<const Node> &maybe_other) const {
 };
 
 std::string String::print() const { return "\"" + escape(this->str) + "\""; }
+
+std::string String::print_verbatim() const { return this->str; }

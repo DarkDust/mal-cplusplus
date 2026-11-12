@@ -9,7 +9,8 @@ namespace mal {
   class String : public Hashable {
   public:
     /** Initialize with a string value. */
-    String(const ConstLocationRangePtr &location, const std::string &str);
+    String(const ConstLocationRangePtr &location, const std::string &str,
+           bool unescape = true);
 
     /** Whether the receiver and argument node are considered equal. */
     [[nodiscard]] bool
@@ -17,6 +18,9 @@ namespace mal {
 
     /** Generate a string representation of the node. */
     [[nodiscard]] std::string print() const override;
+
+    /** Generate a string from the node. */
+    [[nodiscard]] std::string print_verbatim() const override;
 
     [[nodiscard]] std::size_t hash() const override {
       return std::hash<std::string>{}(str);

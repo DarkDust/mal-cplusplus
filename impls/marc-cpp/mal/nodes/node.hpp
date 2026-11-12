@@ -20,8 +20,15 @@ namespace mal {
     Node(Node &&) = delete;
     Node &operator=(Node &&) = delete;
 
-    /** Generate a string representation of the node. */
+    /** Generate a string representation of the node.
+     * The representation is valid MAL input.
+     */
     [[nodiscard]] virtual std::string print() const = 0;
+
+    /** Generate a string from the node.
+     * Unlike `print()`, the output is not necessarily valid MAL input.
+     */
+    [[nodiscard]] virtual std::string print_verbatim() const;
 
     /** Get the node's location range in the source. */
     [[nodiscard]] const ConstLocationRangePtr &get_location() const;

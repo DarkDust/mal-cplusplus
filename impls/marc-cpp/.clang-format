@@ -1,2 +1,9 @@
 BasedOnStyle: LLVM
 NamespaceIndentation: All
+BreakBeforeBinaryOperators: NonAssignment
+AlignOperands: DontAlign
+BreakBinaryOperations:
+  Default: Never
+  PerOperator:
+    - Operators: ['|']
+      Style: OnePerLine

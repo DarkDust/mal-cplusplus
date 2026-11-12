@@ -38,8 +38,8 @@ ConstNodePtr Lambda::eval(const std::vector<ConstNodePtr> &args,
                            "not a symbol");
       }
 
-      const auto start =
-          args.begin() + static_cast<decltype(binds)::difference_type>(
+      const auto start = args.begin()
+          + static_cast<decltype(binds)::difference_type>(
                              std::min(i, args.size()));
       const auto remainder = std::vector(start, args.end());
       const auto remainder_list = make_nonnull_shared<List>(
