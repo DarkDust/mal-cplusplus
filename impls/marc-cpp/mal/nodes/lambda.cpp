@@ -9,7 +9,7 @@ using namespace mal;
 Lambda::Lambda(const ConstLocationRangePtr &range,
                std::vector<ConstNodePtr> binds, const ConstNodePtr &expr,
                const EnvironmentPtr &env)
-    : Node(range), binds(std::move(binds)), expr(expr), env(env) {};
+    : Node(range), binds(std::move(binds)), env(env), expr(expr) {};
 
 ConstNodePtr Lambda::eval(const std::vector<ConstNodePtr> &args,
                           const Evaluator &evaluator) const {

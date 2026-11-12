@@ -23,7 +23,7 @@ namespace mal {
       return std::hash<std::string>{}(keyword);
     }
 
-    [[nodiscard]] bool equals(const Hashable &other) const override {
+    [[nodiscard]] bool equals_hashable(const Hashable &other) const override {
       auto rhs = dynamic_cast<const Keyword *>(&other);
       return rhs && keyword == rhs->keyword;
     }

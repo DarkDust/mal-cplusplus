@@ -55,7 +55,7 @@ namespace mal {
     explicit Hashable(const ConstLocationRangePtr &location) : Node(location) {}
 
     [[nodiscard]] virtual std::size_t hash() const = 0;
-    [[nodiscard]] virtual bool equals(const Hashable &other) const = 0;
+    [[nodiscard]] virtual bool equals_hashable(const Hashable &other) const = 0;
   };
 
   // Type aliases for more compact/convenient handling.

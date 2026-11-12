@@ -43,7 +43,7 @@ namespace mal {
     struct KeyEqual {
       bool operator()(const NonNullSharedPtr<const Hashable> &a,
                       const NonNullSharedPtr<const Hashable> &b) const {
-        return a->equals(*b);
+        return a->equals_hashable(*b);
       }
     };
 

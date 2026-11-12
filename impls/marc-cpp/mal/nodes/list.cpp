@@ -9,11 +9,11 @@ module mal;
 using namespace mal;
 
 List::List(const ConstLocationRangePtr &location, Kind kind)
-    : Node(location), nodes{}, kind(kind) {}
+    : Node(location), kind(kind), nodes{} {}
 
 List::List(const ConstLocationRangePtr &location, Kind kind,
            const std::vector<ConstNodePtr> &nodes)
-    : Node(location), nodes(nodes), kind(kind) {}
+    : Node(location), kind(kind), nodes(nodes) {}
 
 bool List::equals(const NonNullSharedPtr<const Node> &maybe_other) const {
   const auto &other = maybe_other.cast<const List>();

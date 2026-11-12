@@ -1,7 +1,7 @@
-CXX=clang
+CXX=/opt/homebrew/opt/llvm/bin/clang
 LD=$(CXX)
 
-CXXFLAGS=-std=c++23 -fcxx-modules
+CXXFLAGS=-std=c++23 -fcxx-modules -Wall
 LDFLAGS=-lstdc++
 
 .PHONY: all clean
